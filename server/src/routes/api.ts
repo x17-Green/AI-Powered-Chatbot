@@ -28,25 +28,34 @@ const generateAIResponse = async (message: string) => {
 
 // Function to search for a movie
 const searchMovie = async (title: string) => {
-  const response = await axios.get(`${MOVIEDB_BASE_URL}/search/movie`, {
-    params: {
-      api_key: MOVIEDB_API_KEY,
-      query: title,
-    },
-  });
+  console.log(`Searching for movie: ${title}`);
+  try {
+    const response = await axios.get(`${MOVIEDB_BASE_URL}/search/movie`, {
+      params: {
+        api_key: MOVIEDB_API_KEY,
+        query: title,
+      },
+    });
 
-  if (response.data.results.length > 0) {
-    const movie = response.data.results[0];
-    return {
-      title: movie.title,
-      overview: movie.overview,
-      poster_path: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
-      release_date: movie.release_date,
-      vote_average: movie.vote_average,
-    };
+    console.log(`API Response:`, response.data);
+
+    if (response.data.results.length > 0) {
+      const movie = response.data.results[0];
+      return {
+        title: movie.title,
+        overview: movie.overview,
+        poster_path: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
+        release_date: movie.release_date,
+        vote_average: movie.vote_average,
+      };
+    }
+
+    console.log(`No results found for: ${title}`);
+    return null;
+  } catch (error) {
+    console.error(`Error searching for movie: ${title}`, error);
+    throw error;
   }
-
-  return null;
 };
 
 router.post('/chat', async (req, res) => {
@@ -66,15 +75,28 @@ router.get('/movie', async (req, res) => {
     if (typeof title !== 'string') {
       return res.status(400).json({ error: 'Invalid title parameter' });
     }
+    console.log(`Received request for movie: ${title}`);
     const movie = await searchMovie(title);
     if (movie) {
+      console.log(`Found movie:`, movie);
       res.json(movie);
     } else {
+      console.log(`Movie not found: ${title}`);
       res.status(404).json({ error: 'Movie not found' });
     }
   } catch (error) {
     console.error('Error fetching movie data:', error);
     res.status(500).json({ error: 'Error fetching movie data' });
+  }
+});
+
+router.get('/test-movie-api', async (req, res) => {
+  try {
+    const testMovie = await searchMovie('Inception');
+    res.json({ success: true, movie: testMovie });
+  } catch (error) {
+    console.error('Error testing MovieDB API:', error);
+    res.status(500).json({ success: false, error: 'Failed to test MovieDB API' });
   }
 });
 
