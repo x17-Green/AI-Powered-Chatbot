@@ -1,3 +1,2 @@
-node_modules\n.env
-.env.test
+node_modules
 .env

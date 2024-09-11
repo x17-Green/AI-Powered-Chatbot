@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { sendChatMessage } from '../services/api';
+import { sendChatMessage, searchMovie } from '../services/api';
 
 interface ChatProps {
   onMovieSelect: (movie: any) => void;
@@ -17,7 +17,14 @@ const Chat: React.FC<ChatProps> = ({ onMovieSelect }) => {
       try {
         const response = await sendChatMessage(input);
         setMessages(prev => [...prev, { text: response, sender: 'bot' }]);
-        // TODO: Parse response for movie information and call onMovieSelect if a movie is found
+        
+        // Check if the response contains movie information
+        const movieTitleMatch = response.match(/.*"(.+)".*/);
+        if (movieTitleMatch) {
+          const movieTitle = movieTitleMatch[1];
+          const movieData = await searchMovie(movieTitle);
+          onMovieSelect(movieData);
+        }
       } catch (error) {
         console.error('Error sending message:', error);
         setMessages(prev => [...prev, { text: "Sorry, I couldn't process your request.", sender: 'bot' }]);

@@ -1,27 +1,26 @@
-import express from 'express';
-import cors from 'cors';
 import dotenv from 'dotenv';
-import connectDB from './database';
-import apiRoutes from './routes/api';
-
 dotenv.config();
 
-export const app = express();
-const port = process.env.PORT || 3000;
+import express from 'express';
+import cors from 'cors';
+import apiRoutes from './routes/api';
 
-connectDB();
+// Load environment variables
+dotenv.config();
 
+const app = express();
+const port = process.env.PORT || 4444;
+
+// Middleware
 app.use(cors());
 app.use(express.json());
 
+// Routes
 app.use('/api', apiRoutes);
 
-app.get('/', (req, res) => {
-  res.send('AI Movie Chatbot API is running');
+// Start server
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
 
-if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-  });
-}
+export default app;
