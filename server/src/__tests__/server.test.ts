@@ -1,7 +1,18 @@
 import request from 'supertest';
 import { app } from '../server';
+import connectDB, { closeDatabase } from '../database';
+
+jest.setTimeout(30000); // Increase the timeout to 30 seconds
 
 describe('Express Server', () => {
+  beforeAll(async () => {
+    await connectDB();
+  }, 20000);
+
+  afterAll(async () => {
+    await closeDatabase();
+  }, 20000);
+
   it('should start without errors', async () => {
     const response = await request(app).get('/');
     expect(response.status).toBe(200);
