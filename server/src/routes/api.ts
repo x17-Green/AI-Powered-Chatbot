@@ -1,13 +1,13 @@
 import express from 'express';
 import axios from 'axios';
-import OpenAI from 'openai';
+// import OpenAI from 'openai';
 
 const router = express.Router();
 
 // Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// const openai = new OpenAI({
+//   apiKey: process.env.OPENAI_API_KEY,
+// });
 
 // Initialize TheMovieDB API
 const MOVIEDB_API_KEY = process.env.MOVIEDB_API_KEY;
@@ -15,12 +15,15 @@ const MOVIEDB_BASE_URL = 'https://api.themoviedb.org/3';
 
 // Function to generate AI response
 const generateAIResponse = async (message: string) => {
-  const completion = await openai.chat.completions.create({
-    model: "gpt-3.5-turbo",
-    messages: [{ role: "user", content: message }],
-  });
-
-  return completion.choices[0].message.content;
+  // Mock response for development
+  return `This is a mock AI response to: "${message}". Here's information about the movie "Inception".`;
+  
+  // Commented out OpenAI code
+  // const completion = await openai.chat.completions.create({
+  //   model: "gpt-3.5-turbo",
+  //   messages: [{ role: "user", content: message }],
+  // });
+  // return completion.choices[0].message.content;
 };
 
 // Function to search for a movie
