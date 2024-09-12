@@ -38,14 +38,22 @@ router.get('/weather-movie-recommendation', async (req, res) => {
     const weatherCondition = weatherData.weather[0].main.toLowerCase();
     
     let movieGenre = 'action'; // default
-    if (weatherCondition.includes('rain')) {
+    if (weatherCondition.includes('rain') || weatherCondition.includes('drizzle')) {
       movieGenre = 'drama';
-    } else if (weatherCondition.includes('sun')) {
+    } else if (weatherCondition.includes('clear') || weatherCondition.includes('sun')) {
       movieGenre = 'comedy';
+    } else if (weatherCondition.includes('cloud')) {
+      movieGenre = 'mystery';
+    } else if (weatherCondition.includes('snow')) {
+      movieGenre = 'romance';
     }
     
     const movies = await movieDbApi.searchMovie(movieGenre);
-    res.json({ weather: weatherData, movieRecommendations: movies.slice(0, 5) });
+    res.json({ 
+      weather: weatherData, 
+      movieRecommendations: movies.slice(0, 5),
+      recommendedGenre: movieGenre
+    });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch weather-based movie recommendation' });
   }
