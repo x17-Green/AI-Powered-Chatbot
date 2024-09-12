@@ -1,71 +1,17 @@
 import express from 'express';
-import axios from 'axios';
-// import OpenAI from 'openai';
+import { geminiApi } from '../services/gemini';
+import { movieDbApi } from '../services/moviedb';
+import { weatherApi } from '../services/weather';
 
 const router = express.Router();
-
-// Initialize OpenAI
-// const openai = new OpenAI({
-//   apiKey: process.env.OPENAI_API_KEY,
-// });
-
-// Initialize TheMovieDB API
-const MOVIEDB_API_KEY = process.env.MOVIEDB_API_KEY;
-const MOVIEDB_BASE_URL = 'https://api.themoviedb.org/3';
-
-// Function to generate AI response
-const generateAIResponse = async (message: string) => {
-  // Mock response for development
-  return `This is a mock AI response to: "${message}". Here's information about the movie "Inception".`;
-  
-  // Commented out OpenAI code
-  // const completion = await openai.chat.completions.create({
-  //   model: "gpt-3.5-turbo",
-  //   messages: [{ role: "user", content: message }],
-  // });
-  // return completion.choices[0].message.content;
-};
-
-// Function to search for a movie
-const searchMovie = async (title: string) => {
-  console.log(`Searching for movie: ${title}`);
-  try {
-    const response = await axios.get(`${MOVIEDB_BASE_URL}/search/movie`, {
-      params: {
-        api_key: MOVIEDB_API_KEY,
-        query: title,
-      },
-    });
-
-    console.log(`API Response:`, response.data);
-
-    if (response.data.results.length > 0) {
-      const movie = response.data.results[0];
-      return {
-        title: movie.title,
-        overview: movie.overview,
-        poster_path: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
-        release_date: movie.release_date,
-        vote_average: movie.vote_average,
-      };
-    }
-
-    console.log(`No results found for: ${title}`);
-    return null;
-  } catch (error) {
-    console.error(`Error searching for movie: ${title}`, error);
-    throw error;
-  }
-};
 
 router.post('/chat', async (req, res) => {
   try {
     const { message } = req.body;
-    const response = await generateAIResponse(message);
+    const response = await geminiApi.generateChatResponse(message);
     res.json({ response });
   } catch (error) {
-    console.error('Error processing chat message:', error);
-    res.status(500).json({ error: 'Error processing chat message' });
+    res.status(500).json({ error: 'Failed to generate response' });
   }
 });
 
@@ -75,28 +21,33 @@ router.get('/movie', async (req, res) => {
     if (typeof title !== 'string') {
       return res.status(400).json({ error: 'Invalid title parameter' });
     }
-    console.log(`Received request for movie: ${title}`);
-    const movie = await searchMovie(title);
-    if (movie) {
-      console.log(`Found movie:`, movie);
-      res.json(movie);
-    } else {
-      console.log(`Movie not found: ${title}`);
-      res.status(404).json({ error: 'Movie not found' });
-    }
+    const movies = await movieDbApi.searchMovie(title);
+    res.json(movies);
   } catch (error) {
-    console.error('Error fetching movie data:', error);
-    res.status(500).json({ error: 'Error fetching movie data' });
+    res.status(500).json({ error: 'Failed to fetch movie information' });
   }
 });
 
-router.get('/test-movie-api', async (req, res) => {
+router.get('/weather-movie-recommendation', async (req, res) => {
   try {
-    const testMovie = await searchMovie('Inception');
-    res.json({ success: true, movie: testMovie });
+    const { city } = req.query;
+    if (typeof city !== 'string') {
+      return res.status(400).json({ error: 'Invalid city parameter' });
+    }
+    const weatherData = await weatherApi.getCurrentWeather(city);
+    const weatherCondition = weatherData.weather[0].main.toLowerCase();
+    
+    let movieGenre = 'action'; // default
+    if (weatherCondition.includes('rain')) {
+      movieGenre = 'drama';
+    } else if (weatherCondition.includes('sun')) {
+      movieGenre = 'comedy';
+    }
+    
+    const movies = await movieDbApi.searchMovie(movieGenre);
+    res.json({ weather: weatherData, movieRecommendations: movies.slice(0, 5) });
   } catch (error) {
-    console.error('Error testing MovieDB API:', error);
-    res.status(500).json({ success: false, error: 'Failed to test MovieDB API' });
+    res.status(500).json({ error: 'Failed to fetch weather-based movie recommendation' });
   }
 });
 
