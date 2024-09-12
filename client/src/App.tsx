@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import Chat from './components/Chat';
 import MovieInfo from './components/MovieInfo';
-import { searchMovie } from './services/api';
+import WeatherMovieRecommendation from './components/WeatherMovieRecommendation';
+import { searchMovie, getWeatherMovieRecommendation } from './services/api';
 
 interface Movie {
   title: string;
@@ -13,6 +14,7 @@ interface Movie {
 
 const App: React.FC = () => {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [weatherRecommendation, setWeatherRecommendation] = useState<any>(null);
 
   const handleMovieSelect = async (movieTitle: string) => {
     try {
@@ -23,19 +25,32 @@ const App: React.FC = () => {
     }
   };
 
+  const handleWeatherRecommendation = async (city: string) => {
+    try {
+      const data = await getWeatherMovieRecommendation(city);
+      setWeatherRecommendation(data);
+    } catch (error) {
+      console.error('Error fetching weather-based recommendation:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-800 to-indigo-900 p-4 md:p-8">
-      <div className="container mx-auto max-w-6xl">
+      <div className="container mx-auto max-w-7xl">
         <header className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">AI Movie Chatbot</h1>
-          <p className="text-blue-200">Discover and discuss your favorite films with AI assistance</p>
+          <p className="text-blue-200">Discover, discuss, and get weather-based movie recommendations!</p>
         </header>
-        <div className="flex flex-col lg:flex-row gap-8">
-          <div className="w-full lg:w-2/3">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
             <Chat onMovieSelect={handleMovieSelect} />
           </div>
-          <div className="w-full lg:w-1/3">
+          <div className="space-y-8">
             <MovieInfo movie={selectedMovie} />
+            <WeatherMovieRecommendation 
+              onCitySubmit={handleWeatherRecommendation}
+              recommendation={weatherRecommendation}
+            />
           </div>
         </div>
       </div>

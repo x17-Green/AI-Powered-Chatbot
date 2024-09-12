@@ -11,3 +11,8 @@ export const searchMovie = async (title: string) => {
   const response = await axios.get(`${API_BASE_URL}/movie`, { params: { title } });
   return response.data;
 };
+
+export const getWeatherMovieRecommendation = async (city: string) => {
+  const response = await axios.get(`${API_BASE_URL}/weather-movie-recommendation`, { params: { city } });
+  return response.data;
+};

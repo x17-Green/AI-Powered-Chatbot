@@ -1,13 +1,20 @@
-import React, { useState } from 'react';
-import { sendChatMessage, searchMovie } from '../services/api';
+import React, { useState, useRef, useEffect } from 'react';
+import { sendChatMessage } from '../services/api';
 
 interface ChatProps {
-  onMovieSelect: (movie: any) => void;
+  onMovieSelect: (movie: string) => void;
 }
 
 const Chat: React.FC<ChatProps> = ({ onMovieSelect }) => {
   const [messages, setMessages] = useState<{ text: string; sender: 'user' | 'bot' }[]>([]);
   const [input, setInput] = useState('');
+  const messagesEndRef = useRef<null | HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(scrollToBottom, [messages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,12 +25,9 @@ const Chat: React.FC<ChatProps> = ({ onMovieSelect }) => {
         const response = await sendChatMessage(input);
         setMessages(prev => [...prev, { text: response, sender: 'bot' }]);
         
-        // Check if the response contains movie information
         const movieTitleMatch = response.match(/.*"(.+)".*/);
         if (movieTitleMatch) {
-          const movieTitle = movieTitleMatch[1];
-          const movieData = await searchMovie(movieTitle);
-          onMovieSelect(movieData);
+          onMovieSelect(movieTitleMatch[1]);
         }
       } catch (error) {
         console.error('Error sending message:', error);
@@ -33,11 +37,11 @@ const Chat: React.FC<ChatProps> = ({ onMovieSelect }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-xl overflow-hidden">
+    <div className="bg-white rounded-lg shadow-xl overflow-hidden flex flex-col h-[600px]">
       <div className="bg-blue-600 p-4">
         <h2 className="text-xl font-semibold text-white">Chat with AI</h2>
       </div>
-      <div className="h-[500px] overflow-auto p-4 bg-gray-50">
+      <div className="flex-grow overflow-auto p-4 bg-gray-50">
         {messages.map((msg, index) => (
           <div key={index} className={`mb-4 ${msg.sender === 'user' ? 'text-right' : 'text-left'}`}>
             <span className={`inline-block p-3 rounded-lg ${
@@ -49,6 +53,7 @@ const Chat: React.FC<ChatProps> = ({ onMovieSelect }) => {
             </span>
           </div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
       <form onSubmit={handleSubmit} className="p-4 bg-gray-100 border-t border-gray-200">
         <div className="flex">
