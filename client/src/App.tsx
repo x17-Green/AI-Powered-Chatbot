@@ -19,7 +19,9 @@ const App: React.FC = () => {
   const handleMovieSelect = async (movieTitle: string) => {
     try {
       const movieData = await searchMovie(movieTitle);
-      setSelectedMovie(movieData);
+      if (movieData && movieData.length > 0) {
+        setSelectedMovie(movieData[0]);
+      }
     } catch (error) {
       console.error('Error fetching movie data:', error);
     }
@@ -46,7 +48,7 @@ const App: React.FC = () => {
             <Chat onMovieSelect={handleMovieSelect} />
           </div>
           <div className="space-y-8">
-            <MovieInfo movie={selectedMovie} />
+            <MovieInfo movie={selectedMovie} onMovieSelect={setSelectedMovie} />
             <WeatherMovieRecommendation 
               onCitySubmit={handleWeatherRecommendation}
               recommendation={weatherRecommendation}
