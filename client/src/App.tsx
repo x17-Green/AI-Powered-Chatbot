@@ -48,11 +48,11 @@ const App: React.FC = () => {
             <Chat onMovieSelect={handleMovieSelect} />
           </div>
           <div className="space-y-8">
-            <MovieInfo movie={selectedMovie} onMovieSelect={setSelectedMovie} />
             <WeatherMovieRecommendation 
               onCitySubmit={handleWeatherRecommendation}
               recommendation={weatherRecommendation}
             />
+            <MovieInfo movie={selectedMovie} onMovieSelect={setSelectedMovie} />
           </div>
         </div>
       </div>

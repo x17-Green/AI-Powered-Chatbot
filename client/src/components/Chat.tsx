@@ -9,12 +9,20 @@ const Chat: React.FC<ChatProps> = ({ onMovieSelect }) => {
   const [messages, setMessages] = useState<{ text: string; sender: 'user' | 'bot' }[]>([]);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
+  const chatContainerRef = useRef<null | HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(scrollToBottom, [messages]);
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      const height = Math.min(messages.length * 60 + 200, 600); // 60px per message, 200px base height, max 600px
+      chatContainerRef.current.style.height = `${height}px`;
+    }
+  }, [messages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +45,11 @@ const Chat: React.FC<ChatProps> = ({ onMovieSelect }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-xl overflow-hidden flex flex-col h-[600px]">
+    <div 
+      ref={chatContainerRef}
+      className="bg-white rounded-lg shadow-xl overflow-hidden flex flex-col transition-all duration-300 ease-in-out"
+      style={{ minHeight: '200px', maxHeight: '600px' }}
+    >
       <div className="bg-blue-600 p-4">
         <h2 className="text-xl font-semibold text-white">Chat with AI</h2>
       </div>

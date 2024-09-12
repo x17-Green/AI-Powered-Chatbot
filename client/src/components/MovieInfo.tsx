@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { searchMovie } from '../services/api';
 
 interface Movie {
@@ -17,6 +17,7 @@ interface MovieInfoProps {
 const MovieInfo: React.FC<MovieInfoProps> = ({ movie, onMovieSelect }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const movieInfoRef = useRef<null | HTMLDivElement>(null);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,8 +35,21 @@ const MovieInfo: React.FC<MovieInfoProps> = ({ movie, onMovieSelect }) => {
     }
   };
 
+  useEffect(() => {
+    if (movieInfoRef.current) {
+      const baseHeight = 100; // Height of search bar and padding
+      const contentHeight = movie ? 400 : 0; // Estimated height of movie content
+      const height = Math.min(baseHeight + contentHeight, 600);
+      movieInfoRef.current.style.height = `${height}px`;
+    }
+  }, [movie]);
+
   return (
-    <div className="bg-white rounded-lg shadow-xl p-6 h-[600px] flex flex-col">
+    <div 
+      ref={movieInfoRef}
+      className="bg-white rounded-lg shadow-xl p-6 flex flex-col transition-all duration-300 ease-in-out overflow-hidden"
+      style={{ minHeight: '100px', maxHeight: '600px' }}
+    >
       <form onSubmit={handleSearch} className="mb-4">
         <div className="flex">
           <input

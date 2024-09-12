@@ -27,27 +27,31 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
               type="text"
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              className="flex-grow border rounded-l-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-grow border rounded-l-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter city name..."
             />
             <button 
               type="submit" 
-              className="bg-blue-500 text-white px-6 py-3 rounded-r-lg hover:bg-blue-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
-              Get Recommendation
+              Get
             </button>
           </div>
         </form>
         {recommendation && (
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Current Weather: {recommendation.weather.weather[0].main}</h3>
-            <p className="mb-4">Temperature: {recommendation.weather.main.temp}°C</p>
-            <h3 className="text-lg font-semibold mb-2">Recommended Movies:</h3>
-            <ul className="list-disc pl-5">
-              {recommendation.movieRecommendations.map((movie: any, index: number) => (
-                <li key={index} className="mb-1">{movie.title}</li>
-              ))}
-            </ul>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div className="mb-4 md:mb-0">
+              <h3 className="text-lg font-semibold">Current Weather</h3>
+              <p>{recommendation.weather.weather[0].main}, {recommendation.weather.main.temp}°C</p>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Recommended Movies:</h3>
+              <ul className="list-disc pl-5">
+                {recommendation.movieRecommendations.slice(0, 3).map((movie: any, index: number) => (
+                  <li key={index} className="mb-1 text-sm">{movie.title}</li>
+                ))}
+              </ul>
+            </div>
           </div>
         )}
       </div>
