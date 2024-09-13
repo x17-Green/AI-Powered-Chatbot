@@ -9,20 +9,20 @@ This document provides a detailed, step-by-step guide to setting up the frontend
    npx create-react-app client --template typescript
    cd client
    ```
-   Reason: This sets up a new React project with TypeScript support.
+   Reason: This command creates a new React project with TypeScript support in the "client" folder.
 
 2. Install additional dependencies:
    ```
-   npm install axios
+   npm install axios framer-motion
    npm install -D tailwindcss@latest postcss@latest autoprefixer@latest
    ```
-   Reason: Axios for API calls, Tailwind CSS for styling.
+   Reason: Axios is for making API calls, Framer Motion for animations, and Tailwind CSS for styling.
 
 3. Initialize Tailwind CSS:
    ```
    npx tailwindcss init -p
    ```
-   This creates `tailwind.config.js` and `postcss.config.js`.
+   This creates `tailwind.config.js` and `postcss.config.js` files, which are necessary for Tailwind CSS configuration.
 
 4. Update `tailwind.config.js`:
    ```javascript
@@ -37,7 +37,7 @@ This document provides a detailed, step-by-step guide to setting up the frontend
      plugins: [],
    }
    ```
-   Reason: Configures Tailwind to scan our React components for classes.
+   Reason: This configuration tells Tailwind CSS which files to scan for classes.
 
 5. Create `src/index.css`:
    ```css
@@ -45,7 +45,7 @@ This document provides a detailed, step-by-step guide to setting up the frontend
    @tailwind components;
    @tailwind utilities;
    ```
-   Reason: Imports Tailwind's styles into our project.
+   Reason: This file imports Tailwind's styles into our project.
 
 6. Update `src/index.tsx`:
    ```typescript
@@ -63,7 +63,7 @@ This document provides a detailed, step-by-step guide to setting up the frontend
      </React.StrictMode>
    );
    ```
-   Reason: Entry point for our React application, now including Tailwind styles.
+   Reason: This is the entry point for our React application, now including Tailwind styles.
 
 ## 2. Implement Basic Chat Interface
 
@@ -111,7 +111,7 @@ This document provides a detailed, step-by-step guide to setting up the frontend
 
    export default Chat;
    ```
-   Reason: This component handles the chat interface, message display, and user input.
+   Reason: This component handles the chat interface, including sending messages, displaying responses, and extracting movie titles from bot responses.
 
 ## 3. Create Movie Information Display Component
 
@@ -153,7 +153,7 @@ This document provides a detailed, step-by-step guide to setting up the frontend
 
    export default MovieInfo;
    ```
-   Reason: This component displays detailed information about a selected movie.
+   Reason: This component displays detailed information about a selected movie, including its title, poster, overview, release date, and rating.
 
 ## 4. Set up API Service for Backend Communication
 
@@ -172,10 +172,15 @@ This document provides a detailed, step-by-step guide to setting up the frontend
      const response = await axios.get(`${API_BASE_URL}/movie`, { params: { title } });
      return response.data;
    };
-   ```
-   Reason: This service handles API calls to our backend server.
 
-## 5. Implement Basic Styling with Tailwind CSS
+   export const getWeatherMovieRecommendation = async (city: string) => {
+     const response = await axios.get(`${API_BASE_URL}/weather-movie-recommendation`, { params: { city } });
+     return response.data;
+   };
+   ```
+   Reason: This service handles API calls to our backend server, including sending chat messages, searching for movies, and getting weather-based movie recommendations.
+
+## 5. Implement Main App Component with Tailwind CSS Styling
 
 1. Update `src/App.tsx`:
    ```typescript
@@ -218,7 +223,7 @@ This document provides a detailed, step-by-step guide to setting up the frontend
 
    export default App;
    ```
-   Reason: This main component brings together the Chat and MovieInfo components, applying Tailwind CSS classes for layout and styling.
+   Reason: This main component brings together the Chat and MovieInfo components, applying Tailwind CSS classes for layout and styling. It also manages the state for the selected movie.
 
 ## 6. Update package.json Scripts
 
@@ -231,11 +236,24 @@ This document provides a detailed, step-by-step guide to setting up the frontend
      "eject": "react-scripts eject"
    }
    ```
-   Reason: These scripts allow us to run, build, and test our React application.
+   Reason: These scripts allow us to run, build, and test our React application using simple commands.
 
 ## 7. Testing
 
-1. Create basic tests for components in `src/__tests__` directory.
+1. Create a basic test file for the Chat component in `src/__tests__/Chat.test.tsx`:
+   ```typescript
+   import React from 'react';
+   import { render, screen } from '@testing-library/react';
+   import Chat from '../components/Chat';
+
+   test('renders chat component', () => {
+     render(<Chat onMovieSelect={() => {}} />);
+     const chatElement = screen.getByRole('form');
+     expect(chatElement).toBeInTheDocument();
+   });
+   ```
+   Reason: This test ensures that the Chat component renders correctly.
+
 2. Run tests using `npm test`.
 
 ## Next Steps
