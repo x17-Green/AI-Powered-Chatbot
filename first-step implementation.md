@@ -36,6 +36,15 @@ This document provides a detailed, step-by-step guide to setting up the initial 
    ```
    Reason: Prevents sensitive information and unnecessary files from being tracked by git.
 
+
+### **Configuration**
+
+1. Create a `.env` file with the following variables:
+    - `FLASK_APP=app.py`
+    - `FLASK_ENV=development`
+    - `DATABASE_URL=postgresql://[your_database].db`
+
+
 ## 2. Backend Setup
 
 1. Install necessary dependencies:
