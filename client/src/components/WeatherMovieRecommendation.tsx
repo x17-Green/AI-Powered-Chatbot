@@ -2,13 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getWeatherMovieRecommendation, fetchCitySuggestions } from '../services/api';
 
+interface Movie {
+  id: number;
+  title: string;
+  overview: string;
+  poster_path: string;
+  release_date: string;
+  vote_average: number;
+}
+
 interface WeatherMovieRecommendationProps {
-  onCitySubmit: (city: string, result?: any) => void;
-  onMovieClick: (movie: any) => void;
+  onCitySubmit: (city: string) => void;
+  onMovieClick: (movie: Movie) => void;
   recommendation: any;
   isLoading: boolean;
-  setIsLoading: (isLoading: boolean) => void;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   error: string | null;
+  isDarkMode: boolean;
 }
 
 interface Weather {
@@ -50,14 +60,16 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
   onMovieClick, 
   recommendation, 
   isLoading,
-  setIsLoading, 
+  setIsLoading,
+  error: propError,
+  isDarkMode
 }) => {
   const [city, setCity] = useState('');
   const [multipleCities, setMultipleCities] = useState<any[]>([]);
   const [citySuggestions, setCitySuggestions] = useState<any[]>([]);
   const [localRecommendation, setLocalRecommendation] = useState<LocalRecommendation | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null); // Add this line
+  const [error, setError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
 
@@ -69,33 +81,34 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
       try {
         const suggestions = await fetchCitySuggestions(inputValue);
         setCitySuggestions(suggestions);
-        setErrorMessage(null); // Clear any previous error message
+        setErrorMessage(null);
       } catch (error) {
         console.error('Error fetching city suggestions:', error);
-        setCitySuggestions([]); // Clear suggestions on error
-        setErrorMessage('Failed to fetch city suggestions. Please try again.'); // Set error message
+        setCitySuggestions([]);
+        setErrorMessage('Failed to fetch city suggestions. Please try again.');
 
-        // Clear the error message after 5 seconds
         setTimeout(() => {
           setErrorMessage(null);
         }, 5000);
       }
     } else {
       setCitySuggestions([]);
-      setErrorMessage(null); // Clear error message if input is empty
+      setErrorMessage(null);
     }
   };
 
   const handleCitySelect = async (cityName: string, geometry: any) => {
     setCity(cityName);
     setCitySuggestions([]);
-    setSelectedLocation(cityName); // Set the selected location
+    setSelectedLocation(cityName);
 
     try {
       const result = await getWeatherMovieRecommendation(cityName, geometry.lat, geometry.lng);
-      onCitySubmit(cityName, result); // Pass the result to the parent component
+      onCitySubmit(cityName);
+      setLocalRecommendation(result);
     } catch (error) {
       console.error('Error fetching weather data:', error);
+      setError('Failed to fetch weather data. Please try again.');
     }
   };
 
@@ -104,6 +117,7 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
     if (city.trim()) {
       setIsLoading(true);
       setSelectedCity(null);
+      setError(null);
       try {
         const result = await getWeatherMovieRecommendation(city);
         if (Array.isArray(result.weather) && result.weather.length > 1) {
@@ -117,10 +131,11 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
             country: result.sys.country
           });
           setSelectedCity(city);
-          onCitySubmit(city, result);
+          onCitySubmit(city);
         }
       } catch (error) {
         console.error('Error fetching weather data:', error);
+        setError('Failed to fetch weather data. Please try again.');
       } finally {
         setIsLoading(false);
       }
@@ -170,7 +185,7 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
   const displayRecommendation = localRecommendation || recommendation;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden h-full flex flex-col">
+    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden h-full flex flex-col ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
       <div className="bg-blue-600 dark:bg-blue-800 p-4">
         <h2 className="text-xl font-semibold text-white">Weather-based Movie Recommendation</h2>
       </div>
@@ -183,7 +198,7 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
               onChange={handleCityChange}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && citySuggestions.length > 0) {
-                  handleCitySelect(citySuggestions[0].name, citySuggestions[0].geometry); // Select the first suggestion
+                  handleCitySelect(citySuggestions[0].name, citySuggestions[0].geometry);
                 }
               }}
               className="flex-grow border rounded-l-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
@@ -215,18 +230,20 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              className="text-center py-4"
             >
               Loading...
             </motion.div>
           )}
-          {error && (
+          {(error || propError) && (
             <motion.div
               key="error"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              className="text-red-500 text-center py-4"
             >
-              {error}
+              {error || propError}
             </motion.div>
           )}
           

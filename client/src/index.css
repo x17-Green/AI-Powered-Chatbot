@@ -1,3 +1,17 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@layer base {
+  body {
+    @apply bg-white text-gray-900 dark:bg-darkBg dark:text-darkText;
+  }
+
+  select, input[type="text"], input[type="email"], input[type="password"] {
+    @apply bg-white dark:bg-darkInput text-gray-900 dark:text-darkText border-gray-300 dark:border-darkBorder;
+  }
+
+  #root {
+    @apply min-h-screen bg-white dark:bg-darkBg;
+  }
+}

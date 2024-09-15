@@ -15,10 +15,11 @@ interface Movie {
 
 interface MovieInfoProps {
   movie: Movie | null;
-  onMovieSelect: (movie: Movie) => void;
+  onMovieSelect: (movie: Movie | null) => void;
+  isDarkMode: boolean; // Add this line
 }
 
-const MovieInfo: React.FC<MovieInfoProps> = ({ movie, onMovieSelect }) => {
+const MovieInfo: React.FC<MovieInfoProps> = ({ movie, onMovieSelect, isDarkMode }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);

@@ -5,15 +5,13 @@ import WeatherMovieRecommendation from './components/WeatherMovieRecommendation'
 import Login from './components/Login';
 import { searchMovie, getWeatherMovieRecommendation } from './services/api';
 import { getCurrentUser, signOutUser } from './services/auth';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { app as firebaseApp } from './services/firebase';
-
-console.log("Firebase app:", firebaseApp);
+import { FaMoon, FaSun } from 'react-icons/fa';
 
 interface Movie {
-  id: number;  // Add this line
+  id: number;
   title: string;
   overview: string;
   poster_path: string;
@@ -37,27 +35,36 @@ const App: React.FC = () => {
       setUser(currentUser);
     };
     checkUser();
+
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedMode = localStorage.getItem('darkMode');
+    setIsDarkMode(savedMode ? JSON.parse(savedMode) : prefersDark);
   }, []);
 
   useEffect(() => {
-    if (chatContainerRef.current) {
-      const height = window.innerHeight - 200; // Adjust this value as needed
-      chatContainerRef.current.style.height = `${height}px`;
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
-  }, [isChatOpen]);
+  }, [isDarkMode]);
 
-  const handleMovieSelect = async (movieTitle: string) => {
-    try {
-      const movieData = await searchMovie(movieTitle);
-      if (movieData && movieData.length > 0) {
-        setSelectedMovie(movieData[0]);
+  const handleMovieSelect = async (movieTitleOrMovie: string | Movie) => {
+    if (typeof movieTitleOrMovie === 'string') {
+      try {
+        const movieData = await searchMovie(movieTitleOrMovie);
+        if (movieData && movieData.length > 0) {
+          setSelectedMovie(movieData[0]);
+        }
+      } catch (error) {
+        console.error('Error fetching movie data:', error);
       }
-    } catch (error) {
-      console.error('Error fetching movie data:', error);
+    } else {
+      setSelectedMovie(movieTitleOrMovie);
     }
   };
 
-  const handleWeatherRecommendation = async (city: string) => {
+  const handleCitySubmit = async (city: string) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -71,21 +78,19 @@ const App: React.FC = () => {
     }
   };
 
-  const handleMovieClick = (movie: Movie) => {
-    setSelectedMovie(movie);
-  };
-
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
+    localStorage.setItem('darkMode', JSON.stringify(!isDarkMode));
   };
 
-  const handleLogin = () => {
-    setUser(getCurrentUser());
-  };
-
-  const handleLogout = async () => {
+  const handleSignOut = async () => {
     await signOutUser();
     setUser(null);
+  };
+
+  const handleLogin = async () => {
+    const currentUser = await getCurrentUser();
+    setUser(currentUser);
   };
 
   if (!user) {
@@ -97,70 +102,62 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'dark' : ''} bg-gradient-to-br from-blue-800 to-indigo-900 flex flex-col`}>
-      <button
-        onClick={toggleDarkMode}
-        className="fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-600 transition duration-200"
-      >
-        {isDarkMode ? 'Light Mode' : 'Dark Mode'}
-      </button>
-      <button
-        onClick={handleLogout}
-        className="fixed top-4 left-4 bg-red-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-red-600 transition duration-200"
-      >
-        Logout
-      </button>
-      <div className="container mx-auto max-w-7xl flex-grow flex flex-col p-4 md:p-8">
-        <header className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">AI Movie Chatbot</h1>
-          <p className="text-blue-200">Discover, discuss, and get weather-based movie recommendations!</p>
-        </header>
-        <div className="flex-grow flex flex-col lg:flex-row gap-8 relative">
-          <AnimatePresence>
-            {isChatOpen && (
-              <motion.div
-                ref={chatContainerRef}
-                className="lg:w-1/2 flex-shrink-0"
-                initial={{ width: 0, opacity: 0 }}
-                animate={{ width: "auto", opacity: 1 }}
-                exit={{ width: 0, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                style={{
-                  position: 'sticky',
-                  top: '1rem',
-                  overflowY: 'auto',
-                }}
+    <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'dark bg-darkBg text-darkText' : 'bg-white text-gray-900'}`}>
+      <ToastContainer 
+        position="top-right" 
+        autoClose={3000} 
+        hideProgressBar={false} 
+        newestOnTop={false} 
+        closeOnClick 
+        rtl={false} 
+        pauseOnFocusLoss 
+        draggable 
+        pauseOnHover 
+        theme={isDarkMode ? 'dark' : 'light'}
+      />
+      <div className="container mx-auto px-4 py-8">
+        <header className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">AI Movie Chatbot</h1>
+          <div className="flex items-center">
+            {user && (
+              <button
+                onClick={handleSignOut}
+                className="mr-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
               >
-                <Chat onMovieSelect={handleMovieSelect} />
-              </motion.div>
+                Sign Out
+              </button>
             )}
-          </AnimatePresence>
-          <div className={`flex-grow flex flex-col gap-8 ${isChatOpen ? 'lg:w-1/2' : 'w-full'}`}>
-            <div className="flex-grow bg-white rounded-lg shadow-xl overflow-hidden">
-              <WeatherMovieRecommendation 
-                onCitySubmit={handleWeatherRecommendation}
-                onMovieClick={handleMovieClick}
-                recommendation={weatherRecommendation}
-                isLoading={isLoading}
-                setIsLoading={setIsLoading}
-                error={error}
-              />
-            </div>
-            <div className="flex-grow bg-white rounded-lg shadow-xl overflow-hidden">
-              <MovieInfo movie={selectedMovie} onMovieSelect={setSelectedMovie} />
-            </div>
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 rounded-full bg-gray-200 dark:bg-gray-700"
+            >
+              {isDarkMode ? <FaSun className="text-yellow-400" /> : <FaMoon className="text-gray-700" />}
+            </button>
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-8">
+            <Chat onMovieSelect={handleMovieSelect} isDarkMode={isDarkMode} />
+            <WeatherMovieRecommendation
+              onCitySubmit={handleCitySubmit}
+              onMovieClick={handleMovieSelect}
+              recommendation={weatherRecommendation}
+              isLoading={isLoading}
+              setIsLoading={setIsLoading}
+              error={error}
+              isDarkMode={isDarkMode}
+            />
+          </div>
+          <div>
+            <MovieInfo 
+              movie={selectedMovie} 
+              onMovieSelect={setSelectedMovie} 
+              isDarkMode={isDarkMode} 
+            />
           </div>
         </div>
       </div>
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-blue-900 to-transparent pointer-events-none">
-        <button
-          onClick={() => setIsChatOpen(!isChatOpen)}
-          className="bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-600 transition duration-200 pointer-events-auto float-right"
-        >
-          {isChatOpen ? 'Close Chat' : 'Chat with AI'}
-        </button>
-      </div>
-      <ToastContainer position="bottom-right" theme={isDarkMode ? 'dark' : 'light'} />
     </div>
   );
 };
