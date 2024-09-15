@@ -5,7 +5,7 @@ import { app } from './firebase';
 
 // const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://your-back4app-container-url.back4app.io/api';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL
+const API_BASE_URL = 'http://localhost:5000/api'; // Adjust this to match your server URL
 console.log('API_BASE_URL:', API_BASE_URL);
 
 const database = getDatabase(app);
@@ -25,31 +25,28 @@ export const sendChatMessage = async (message: string) => {
 };
 
 export const searchMovie = async (title: string) => {
-  console.log(`Searching for movie: ${title}`);
   try {
-    const response = await axiosInstance.get('/movie', { params: { title } });
-    console.log('Search response:', response.data);
+    const response = await axios.get(`${API_BASE_URL}/movie`, { params: { title } });
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      if (error.response?.status === 404) {
-        console.error('Movie not found:', error);
-        throw new Error('Movie not found. Please try a different title.');
-      }
-    }
-    console.error('Error searching for movie:', error);
-    throw new Error('An error occurred while searching for the movie.');
+    console.error('Error searching movie:', error);
+    throw error;
   }
 };
 
 export const getWeatherMovieRecommendation = async (city: string, lat?: number, lon?: number) => {
-  const params: any = { city }; // Remove genre parameter
-  if (lat !== undefined && lon !== undefined) {
-    params.lat = lat;
-    params.lon = lon;
+  try {
+    const params: any = { city };
+    if (lat !== undefined && lon !== undefined) {
+      params.lat = lat;
+      params.lon = lon;
+    }
+    const response = await axios.get(`${API_BASE_URL}/weather-movie-recommendation`, { params });
+    return response.data;
+  } catch (error) {
+    console.error('Error getting weather movie recommendation:', error);
+    throw error;
   }
-  const response = await axiosInstance.get('/weather-movie-recommendation', { params });
-  return response.data;
 };
 
 export const rateMovie = async (movieId: number, rating: number) => {

@@ -39,6 +39,7 @@ router.get('/movie', async (req, res) => {
     const movies = await movieDbApi.searchMovie(title);
     res.json(movies);
   } catch (error) {
+    console.error('Error searching movie:', error);
     res.status(500).json({ error: 'Failed to fetch movie information' });
   }
 });
@@ -134,40 +135,39 @@ router.get('/weather-movie-recommendation', async (req, res) => {
 
     let weatherData;
     if (lat && lon) {
-      // If lat and lon are provided, get weather for specific coordinates
       weatherData = await weatherApi.getCurrentWeatherByCoordinates(Number(lat), Number(lon));
     } else {
-      // Otherwise, get weather for multiple cities with the same name
-      weatherData = await weatherApi.getCurrentWeatherForMultipleCities(city);
+      const cities = await weatherApi.getCurrentWeatherForMultipleCities(city);
+      weatherData = cities[0]; // Use the first city in the list
     }
 
-    // If multiple cities are found, return the list without movie recommendations
-    if (Array.isArray(weatherData) && weatherData.length > 1) {
-      return res.json({ weather: weatherData });
+    // Implement movie recommendation logic based on weather
+    const weatherCondition = weatherData.weather[0].main.toLowerCase();
+    let movieGenre;
+
+    switch (weatherCondition) {
+      case 'clear':
+        movieGenre = 'adventure';
+        break;
+      case 'clouds':
+        movieGenre = 'drama';
+        break;
+      case 'rain':
+        movieGenre = 'mystery';
+        break;
+      // Add more cases as needed
+      default:
+        movieGenre = 'comedy';
     }
 
-    // Use the first (or only) city's weather for movie recommendations
-    const primaryWeather = Array.isArray(weatherData) ? weatherData[0] : weatherData;
-    const weatherCondition = primaryWeather.weather[0].main.toLowerCase();
-    
-    let movieGenre = 'action'; // default
-    if (weatherCondition.includes('rain') || weatherCondition.includes('drizzle')) {
-      movieGenre = 'drama';
-    } else if (weatherCondition.includes('clear') || weatherCondition.includes('sun')) {
-      movieGenre = 'comedy';
-    } else if (weatherCondition.includes('cloud')) {
-      movieGenre = 'mystery';
-    } else if (weatherCondition.includes('snow')) {
-      movieGenre = 'romance';
-    }
-    
     const movies = await movieDbApi.searchMovie(movieGenre);
     res.json({ 
-      weather: primaryWeather, 
+      weather: weatherData, 
       movieRecommendations: movies.slice(0, 5),
       recommendedGenre: movieGenre
     });
   } catch (error) {
+    console.error('Error fetching weather-based recommendation:', error);
     res.status(500).json({ error: 'Failed to fetch weather-based movie recommendation' });
   }
 });
