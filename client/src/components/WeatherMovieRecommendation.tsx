@@ -158,27 +158,33 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
     }
 
     return (
-      <>
-        <motion.span 
-          className="text-4xl mr-4"
-          animate={{ 
-            scale: [1, 1.2, 1],
-            rotate: [0, 10, -10, 0]
-          }}
-          transition={{ 
-            duration: 2,
-            repeat: Infinity,
-            repeatType: "reverse"
-          }}
-        >
-          {getWeatherIcon(weather.weather[0].main)}
-        </motion.span>
-        <div>
-          <h3 className="text-lg font-semibold dark:text-white">{localRecommendation?.cityName} Weather</h3>
-          <p className="dark:text-gray-300">{weather.weather[0].main}, {weather.main.temp}°C</p>
-          <p className="text-sm dark:text-gray-400">{localRecommendation?.country}</p>
+      <div className="bg-gradient-to-r from-blue-500 to-blue-300 dark:from-blue-700 dark:to-blue-500 p-4 rounded-lg shadow-md flex items-center justify-between">
+        <div className="flex items-center">
+          <motion.span 
+            className="text-5xl mr-4"
+            animate={{ 
+              scale: [1, 1.2, 1],
+              rotate: [0, 10, -10, 0]
+            }}
+            transition={{ 
+              duration: 2,
+              repeat: Infinity,
+              repeatType: "reverse"
+            }}
+          >
+            {getWeatherIcon(weather.weather[0].main)}
+          </motion.span>
+          <div>
+            <h3 className="text-xl font-bold text-white">{localRecommendation?.cityName}</h3>
+            <p className="text-white">{weather.weather[0].main}, {Math.round(weather.main.temp)}°C</p>
+            <p className="text-sm text-white opacity-75">{localRecommendation?.country}</p>
+          </div>
         </div>
-      </>
+        <div className="text-right">
+          <p className="text-white">Humidity: {weather.main.humidity}%</p>
+          <p className="text-white">Wind: {weather.wind.speed} m/s</p>
+        </div>
+      </div>
     );
   };
 
@@ -190,9 +196,9 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
         <h2 className="text-xl font-semibold text-white">Weather-based Movie Recommendation</h2>
       </div>
       <div className="p-4 flex-grow flex flex-col overflow-hidden">
-        <form onSubmit={handleSubmit} className="mb-4 flex-shrink-0">
+        <form onSubmit={handleSubmit} className="mb-4 flex-shrink-0 relative">
           <div className="flex">
-          <input
+            <input
               type="text"
               value={city}
               onChange={handleCityChange}
@@ -203,7 +209,7 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
               }}
               className="flex-grow border rounded-l-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
               placeholder="Enter city name..."
-          />  
+            />  
             <button 
               type="submit" 
               className="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
@@ -213,9 +219,13 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
             </button>
           </div>
           {citySuggestions.length > 0 && (
-            <ul className="absolute bg-white border border-gray-300 rounded-lg mt-1 max-h-60 overflow-auto z-10">
+            <ul className="absolute bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 max-h-60 overflow-auto z-10 w-full">
               {citySuggestions.map((suggestion, index) => (
-                <li key={index} className="p-2 hover:bg-gray-200 cursor-pointer" onClick={() => handleCitySelect(suggestion.name, suggestion.geometry)}>
+                <li 
+                  key={index} 
+                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer text-gray-900 dark:text-white"
+                  onClick={() => handleCitySelect(suggestion.name, suggestion.geometry)}
+                >
                   {suggestion.name}, {suggestion.country}
                 </li>
               ))}

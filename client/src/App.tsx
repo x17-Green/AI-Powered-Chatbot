@@ -136,8 +136,8 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-8 flex flex-col">
             <Chat onMovieSelect={handleMovieSelect} isDarkMode={isDarkMode} />
             <WeatherMovieRecommendation
               onCitySubmit={handleCitySubmit}
@@ -149,7 +149,7 @@ const App: React.FC = () => {
               isDarkMode={isDarkMode}
             />
           </div>
-          <div>
+          <div className="flex flex-col">
             <MovieInfo 
               movie={selectedMovie} 
               onMovieSelect={setSelectedMovie} 
