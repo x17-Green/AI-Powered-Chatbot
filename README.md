@@ -46,7 +46,7 @@ The AI Movie Chatbot is a web application that allows users to discover, discuss
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/ai-movie-chatbot.git
+   git clone https://github.com/x17-Green/AI-Powered-Chatbot.git
    cd ai-movie-chatbot
    ```
 
