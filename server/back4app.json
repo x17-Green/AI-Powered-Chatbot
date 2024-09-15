@@ -1,0 +1,5 @@
+{
+  "name": "AI-Movie-Chatbot",
+  "description": "AI-powered movie chatbot with weather-based recommendations",
+  "addons": ["mongodb"]
+}

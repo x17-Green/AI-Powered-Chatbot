@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import dotenv from 'dotenv';
 import { logger } from '../utils/logger';
+import dotenv from 'dotenv';
 
 dotenv.config();
 

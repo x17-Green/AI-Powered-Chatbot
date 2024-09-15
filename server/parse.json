@@ -1,0 +1,7 @@
+{
+    "applications": {
+      "_default": {
+        "link": "movieAI"
+      }
+    }
+  }

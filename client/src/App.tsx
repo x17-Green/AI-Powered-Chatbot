@@ -1,11 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Chat from './components/Chat';
 import MovieInfo from './components/MovieInfo';
 import WeatherMovieRecommendation from './components/WeatherMovieRecommendation';
+import Login from './components/Login';
 import { searchMovie, getWeatherMovieRecommendation } from './services/api';
+import { getCurrentUser, signOutUser } from './services/auth';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { app as firebaseApp } from './services/firebase';
+
+console.log("Firebase app:", firebaseApp);
 
 interface Movie {
+  id: number;  // Add this line
   title: string;
   overview: string;
   poster_path: string;
@@ -19,6 +27,24 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+    };
+    checkUser();
+  }, []);
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      const height = window.innerHeight - 200; // Adjust this value as needed
+      chatContainerRef.current.style.height = `${height}px`;
+    }
+  }, [isChatOpen]);
 
   const handleMovieSelect = async (movieTitle: string) => {
     try {
@@ -45,22 +71,65 @@ const App: React.FC = () => {
     }
   };
 
+  const handleMovieClick = (movie: Movie) => {
+    setSelectedMovie(movie);
+  };
+
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
+  const handleLogin = () => {
+    setUser(getCurrentUser());
+  };
+
+  const handleLogout = async () => {
+    await signOutUser();
+    setUser(null);
+  };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-800 to-indigo-900 flex justify-center items-center">
+        <Login onLogin={handleLogin} />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-800 to-indigo-900 flex flex-col">
+    <div className={`min-h-screen ${isDarkMode ? 'dark' : ''} bg-gradient-to-br from-blue-800 to-indigo-900 flex flex-col`}>
+      <button
+        onClick={toggleDarkMode}
+        className="fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-600 transition duration-200"
+      >
+        {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+      </button>
+      <button
+        onClick={handleLogout}
+        className="fixed top-4 left-4 bg-red-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-red-600 transition duration-200"
+      >
+        Logout
+      </button>
       <div className="container mx-auto max-w-7xl flex-grow flex flex-col p-4 md:p-8">
         <header className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">AI Movie Chatbot</h1>
           <p className="text-blue-200">Discover, discuss, and get weather-based movie recommendations!</p>
         </header>
-        <div className="flex-grow flex flex-col lg:flex-row gap-8">
+        <div className="flex-grow flex flex-col lg:flex-row gap-8 relative">
           <AnimatePresence>
             {isChatOpen && (
               <motion.div
+                ref={chatContainerRef}
                 className="lg:w-1/2 flex-shrink-0"
                 initial={{ width: 0, opacity: 0 }}
                 animate={{ width: "auto", opacity: 1 }}
                 exit={{ width: 0, opacity: 0 }}
                 transition={{ duration: 0.3 }}
+                style={{
+                  position: 'sticky',
+                  top: '1rem',
+                  overflowY: 'auto',
+                }}
               >
                 <Chat onMovieSelect={handleMovieSelect} />
               </motion.div>
@@ -70,8 +139,10 @@ const App: React.FC = () => {
             <div className="flex-grow bg-white rounded-lg shadow-xl overflow-hidden">
               <WeatherMovieRecommendation 
                 onCitySubmit={handleWeatherRecommendation}
+                onMovieClick={handleMovieClick}
                 recommendation={weatherRecommendation}
                 isLoading={isLoading}
+                setIsLoading={setIsLoading}
                 error={error}
               />
             </div>
@@ -89,6 +160,7 @@ const App: React.FC = () => {
           {isChatOpen ? 'Close Chat' : 'Chat with AI'}
         </button>
       </div>
+      <ToastContainer position="bottom-right" theme={isDarkMode ? 'dark' : 'light'} />
     </div>
   );
 };

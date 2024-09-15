@@ -1,26 +1,24 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
 import express from 'express';
 import cors from 'cors';
+import connectDB from './database';
 import apiRoutes from './routes/api';
+import dotenv from 'dotenv';
 
-// Load environment variables
 dotenv.config();
-
 const app = express();
-const port = process.env.PORT || 4444;
+const port = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
+connectDB();
+
+// Update CORS configuration
+app.use(cors({
+  origin: 'http://localhost:3000', // Replace with your client URL
+  credentials: true, // Allow credentials
+}));
+
 app.use(express.json());
-
-// Routes
 app.use('/api', apiRoutes);
 
-// Start server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
-
-export default app;
