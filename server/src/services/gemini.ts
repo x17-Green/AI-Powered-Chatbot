@@ -4,9 +4,9 @@ import { logger } from '../utils/logger';
 
 dotenv.config();
 
-console.log('GOOGLE_API_KEY:', process.env.GOOGLE_API_KEY); // Add this line
+console.log('GOOGLE_GEMINI_API_KEY:', process.env.GOOGLE_GEMINI_API_KEY); // Add this line
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
 
 export const geminiApi = {
   generateChatResponse: async (message: string) => {
