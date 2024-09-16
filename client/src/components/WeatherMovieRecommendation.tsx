@@ -193,7 +193,7 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
   const displayRecommendation = localRecommendation || recommendation;
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden flex flex-col transition-all duration-300 ${isDarkMode ? 'text-white' : 'text-gray-900'} ${isChatExpanded ? 'h-full' : 'h-[calc(100vh-12rem)]'}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden flex flex-col transition-all duration-300 ${isDarkMode ? 'text-white' : 'text-gray-900'} ${isChatExpanded ? 'h-full' : 'h-auto min-h-[calc(100vh-12rem)]'}`}>
       <div className="bg-blue-600 dark:bg-blue-800 p-4">
         <h2 className="text-xl font-semibold text-white">Weather-based Movie Recommendation</h2>
       </div>
@@ -235,110 +235,112 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
           )}
         </form>
         
-        <AnimatePresence>
-          {isLoading && (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="text-center py-4"
-            >
-              Loading...
-            </motion.div>
-          )}
-          {(error || propError) && (
-            <motion.div
-              key="error"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="text-red-500 text-center py-4"
-            >
-              {error || propError}
-            </motion.div>
-          )}
-          
-          {multipleCities.length > 0 && (
-            <motion.div
-              key="multiple-cities"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="mb-4"
-            >
-              <h3 className="text-lg font-semibold mb-2">Multiple cities found. Please select one:</h3>
-              <ul className="list-disc pl-5">
-                {multipleCities.map((city, index) => (
-                  <li key={index} className="mb-2">
-                    <button
-                      className="text-blue-500 hover:text-blue-700 font-semibold"
-                      onClick={() => handleCitySelect(city.name, city.geometry)}
-                    >
-                      {city.name}, {city.sys.country}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          )}
-          
-          {selectedCity && (
-            <motion.div
-              key="selected-city"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-2 text-sm text-gray-600 italic"
-            >
-              Showing recommendations for {selectedCity}
-            </motion.div>
-          )}
-          
-          {displayRecommendation && (
-            <motion.div
-              key="recommendation"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              className="flex-grow flex flex-col overflow-hidden"
-            >
-              <div className="mb-4 flex-shrink-0">
-                {renderWeatherInfo(displayRecommendation.weather)}
-              </div>
-              {displayRecommendation.movieRecommendations && (
-                <div className="flex-grow overflow-auto">
-                  <h3 className="text-lg font-semibold mb-2 dark:text-white">Recommended Movies ({displayRecommendation.recommendedGenre}):</h3>
-                  <div className={`grid gap-4 pb-4 ${
-                    isChatExpanded 
-                      ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4' 
-                      : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'
-                  }`}>
-                    {displayRecommendation.movieRecommendations.map((movie: any, index: number) => (
-                      <motion.div 
-                        key={index} 
-                        className="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg flex flex-col items-center cursor-pointer shadow-md hover:shadow-lg transition-shadow duration-200"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => onMovieClick(movie)}
+        <div className="flex-grow overflow-auto">
+          <AnimatePresence>
+            {isLoading && (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="text-center py-4"
+              >
+                Loading...
+              </motion.div>
+            )}
+            {(error || propError) && (
+              <motion.div
+                key="error"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="text-red-500 text-center py-4"
+              >
+                {error || propError}
+              </motion.div>
+            )}
+            
+            {multipleCities.length > 0 && (
+              <motion.div
+                key="multiple-cities"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="mb-4"
+              >
+                <h3 className="text-lg font-semibold mb-2">Multiple cities found. Please select one:</h3>
+                <ul className="list-disc pl-5">
+                  {multipleCities.map((city, index) => (
+                    <li key={index} className="mb-2">
+                      <button
+                        className="text-blue-500 hover:text-blue-700 font-semibold"
+                        onClick={() => handleCitySelect(city.name, city.geometry)}
                       >
-                        {movie.poster_path && (
-                          <div className="w-full aspect-[2/3] mb-2 overflow-hidden rounded-lg">
-                            <img 
-                              src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} 
-                              alt={movie.title}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        )}
-                        <p className="text-sm font-medium text-center dark:text-white line-clamp-2 h-10">{movie.title}</p>
-                      </motion.div>
-                    ))}
-                  </div>
+                        {city.name}, {city.sys.country}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            )}
+            
+            {selectedCity && (
+              <motion.div
+                key="selected-city"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-2 text-sm text-gray-600 italic"
+              >
+                Showing recommendations for {selectedCity}
+              </motion.div>
+            )}
+            
+            {displayRecommendation && (
+              <motion.div
+                key="recommendation"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="flex flex-col"
+              >
+                <div className="mb-4">
+                  {renderWeatherInfo(displayRecommendation.weather)}
                 </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+                {displayRecommendation.movieRecommendations && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2 dark:text-white">Recommended Movies ({displayRecommendation.recommendedGenre}):</h3>
+                    <div className={`grid gap-4 pb-4 ${
+                      isChatExpanded 
+                        ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4' 
+                        : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'
+                    }`}>
+                      {displayRecommendation.movieRecommendations.map((movie: any, index: number) => (
+                        <motion.div 
+                          key={index} 
+                          className="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg flex flex-col items-center cursor-pointer shadow-md hover:shadow-lg transition-shadow duration-200"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => onMovieClick(movie)}
+                        >
+                          {movie.poster_path && (
+                            <div className="w-full pb-[150%] relative mb-2 overflow-hidden rounded-lg">
+                              <img 
+                                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} 
+                                alt={movie.title}
+                                className="absolute top-0 left-0 w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+                          <p className="text-sm font-medium text-center dark:text-white line-clamp-2 h-10">{movie.title}</p>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
