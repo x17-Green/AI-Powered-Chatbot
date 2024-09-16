@@ -5,7 +5,7 @@ import { app } from './firebase';
 
 // const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://your-back4app-container-url.back4app.io/api';
 
-const API_BASE_URL = 'http://localhost:5000/api'; // Adjust this to match your server URL
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL; // Adjust this to match your server URL
 console.log('API_BASE_URL:', API_BASE_URL);
 
 const database = getDatabase(app);
