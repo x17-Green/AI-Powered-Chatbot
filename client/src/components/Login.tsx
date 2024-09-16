@@ -71,10 +71,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               className="w-full px-3 py-2 border rounded-md text-gray-700 mb-3"
               required
             />
-            <input
+            <input 
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               placeholder="Password"
               className="w-full px-3 py-2 border rounded-md text-gray-700 mb-3"
               required
