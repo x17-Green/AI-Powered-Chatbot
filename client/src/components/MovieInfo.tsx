@@ -26,6 +26,8 @@ const MovieInfo: React.FC<MovieInfoProps> = ({ movie, onMovieSelect, isDarkMode 
   const [userRating, setUserRating] = useState<number | null>(null);
   const [averageRating, setAverageRating] = useState<number | null>(null);
   const [ratingStatus, setRatingStatus] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [rating, setRating] = useState<number | null>(null);
 
   useEffect(() => {
     if (movie) {
@@ -34,12 +36,14 @@ const MovieInfo: React.FC<MovieInfoProps> = ({ movie, onMovieSelect, isDarkMode 
   }, [movie]);
 
   const fetchMovieRating = async (movieId: number) => {
+    setLoading(true);
     try {
       const { averageRating, userRating } = await getMovieRating(movieId);
-      setAverageRating(averageRating);
-      setUserRating(userRating);
+      setRating(userRating || averageRating);
     } catch (error) {
-      console.error('Error fetching movie rating:', error);
+      toast.error('Failed to fetch movie rating.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -177,7 +181,7 @@ const MovieInfo: React.FC<MovieInfoProps> = ({ movie, onMovieSelect, isDarkMode 
                 >
                   <p className="mb-2">{movie.overview}</p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Release Date: {movie.release_date}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Rating: {movie.vote_average}/10</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Rating: {rating ? `${rating}/10` : 'N/A'}</p>
                 </motion.div>
                 {movie && (
                   <motion.div 

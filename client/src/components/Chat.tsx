@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { sendChatMessage } from '../services/api';
 import { motion } from 'framer-motion';
 import { FaPaperPlane } from 'react-icons/fa';
+import ReactMarkdown from 'react-markdown';
 
 interface ChatProps {
   onMovieSelect: (movie: string) => void;
@@ -17,97 +18,104 @@ interface Message {
 const Chat: React.FC<ChatProps> = ({ onMovieSelect, isDarkMode }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const messagesEndRef = useRef<null | HTMLDivElement>(null);
-  const [lastKey, setLastKey] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Remove this function call as it's not defined
-    // loadChatHistory();
-  }, []);
-
-  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(scrollToBottom, [messages]);
+  }, [messages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim()) {
-      const userMessage: Message = { text: input, sender: 'user', timestamp: Date.now() };
-      setMessages(prev => [...prev, userMessage]);
-      // Remove this function call as it's not defined
-      // await saveChatMessage(userMessage);
-      setInput('');
-      try {
-        const response = await sendChatMessage(input);
-        const botMessage: Message = { text: response, sender: 'bot', timestamp: Date.now() };
-        setMessages(prev => [...prev, botMessage]);
-        // Remove this function call as it's not defined
-        // await saveChatMessage(botMessage);
-        
-        const movieTitleMatch = response.match(/.*"(.+)".*/);
-        if (movieTitleMatch) {
-          onMovieSelect(movieTitleMatch[1]);
-        }
-      } catch (error) {
-        console.error('Error sending message:', error);
-        const errorMessage: Message = { 
-          text: "Sorry, I couldn't process your request.", 
-          sender: 'bot', 
-          timestamp: Date.now() 
-        };
-        setMessages(prev => [...prev, errorMessage]);
-        // Remove this function call as it's not defined
-        // await saveChatMessage(errorMessage);
-      }
+      await handleUserMessage(input);
     }
   };
 
-  // Remove these functions as they're not used and causing errors
-  // const shareConversation = () => { ... };
-  // const loadMoreMessages = async () => { ... };
-  // const handleClearChat = async () => { ... };
+  const handleUserMessage = async (userInput: string) => {
+    const userMessage: Message = { text: userInput, sender: 'user', timestamp: Date.now() };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true); // Start loading animation
+
+    try {
+      const response = await sendChatMessage(userInput);
+      simulateTyping(response); // Simulate typing effect for the AI response
+    } catch (error) {
+      const errorMessage: Message = { 
+        text: "Sorry, I couldn't process your request.", 
+        sender: 'bot', 
+        timestamp: Date.now() 
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false); // Stop loading animation
+    }
+  };
+
+  const simulateTyping = (response: string) => {
+    const words = response.split(' ');
+    let index = 0;
+    const typingMessage: Message = { text: '', sender: 'bot', timestamp: Date.now() };
+
+    // Add the typing message to the messages array
+    setMessages(prev => [...prev, typingMessage]);
+
+    const typingInterval = setInterval(() => {
+      if (index < words.length) {
+        typingMessage.text += (index === 0 ? '' : ' ') + words[index]; // Add space before each word except the first
+        setMessages(prev => {
+          const newMessages = [...prev];
+          newMessages[newMessages.length - 1] = typingMessage; // Update the last message
+          return newMessages;
+        });
+        index++;
+      } else {
+        clearInterval(typingInterval);
+        handleMovieSelection(response); // Call movie selection after typing is done
+      }
+    }, 150); // Adjust typing speed here (150ms per word for faster generation)
+  };
+
+  const handleMovieSelection = (response: string) => {
+    const movieTitleMatch = response.match(/.*"(.+)".*/);
+    if (movieTitleMatch) {
+      onMovieSelect(movieTitleMatch[1]);
+    }
+  };
 
   return (
     <div className={`rounded-lg shadow-md p-4 h-[400px] flex flex-col ${isDarkMode ? 'bg-darkBg text-darkText' : 'bg-white text-gray-900'}`}>
       <h2 className="text-xl font-bold mb-2">Chat</h2>
-      <div 
-        ref={messagesEndRef}
-        className="flex-grow overflow-y-auto mb-2 space-y-2"
-      >
-        {messages.map((msg, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
-            className={`p-2 rounded-lg text-sm ${
-              msg.sender === 'user' 
-                ? isDarkMode ? 'bg-blue-900 ml-auto' : 'bg-blue-100 ml-auto'
-                : isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
-            } max-w-[80%]`}
+      <div className="flex-grow overflow-y-auto mb-2 space-y-2">
+      {messages.map((msg, index) => (
+        <motion.div
+          key={index}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }} // Fading effect duration
+          className={`p-2 rounded-lg text-sm ${msg.sender === 'user' ? 'bg-blue-100 ml-auto' : 'bg-gray-100'}`}
           >
-            {msg.text}
+            <ReactMarkdown>{msg.text}</ReactMarkdown>
           </motion.div>
         ))}
+        {isLoading && (
+          <div className="p-2 rounded-lg text-sm bg-gray-100">
+            <span>KodePanther are growling...</span>
+            <span className="animate-pulse">...</span>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
       </div>
       <form onSubmit={handleSubmit} className="flex">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          className={`flex-grow p-2 text-sm border rounded-l-lg ${
-            isDarkMode 
-              ? 'bg-darkInput border-darkBorder text-darkText' 
-              : 'bg-white border-gray-300 text-gray-900'
-          }`}
+          className={`flex-grow p-2 text-sm border rounded-l-lg ${isDarkMode ? 'bg-darkInput border-darkBorder text-darkText' : 'bg-white border-gray-300 text-gray-900'}`}
           placeholder="Type your message..."
         />
-        <button
-          type="submit"
-          className="bg-blue-500 text-white p-2 rounded-r-lg hover:bg-blue-600 transition-colors"
-        >
+        <button type="submit" className="bg-blue-500 text-white p-2 rounded-r-lg hover:bg-blue-600 transition-colors">
           <FaPaperPlane />
         </button>
       </form>
