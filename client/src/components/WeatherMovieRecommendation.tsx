@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getWeatherMovieRecommendation, fetchCitySuggestions } from '../services/api';
 
@@ -74,6 +74,8 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestionsRef = useRef<HTMLUListElement>(null);
 
   const handleCityChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
@@ -83,10 +85,12 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
       try {
         const suggestions = await fetchCitySuggestions(inputValue);
         setCitySuggestions(suggestions);
+        setShowSuggestions(true);
         setErrorMessage(null);
       } catch (error) {
         console.error('Error fetching city suggestions:', error);
         setCitySuggestions([]);
+        setShowSuggestions(false);
         setErrorMessage('Failed to fetch city suggestions. Please try again.');
 
         setTimeout(() => {
@@ -95,6 +99,7 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
       }
     } else {
       setCitySuggestions([]);
+      setShowSuggestions(false);
       setErrorMessage(null);
     }
   };
@@ -103,6 +108,8 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
     setCity(cityName);
     setCitySuggestions([]);
     setSelectedLocation(cityName);
+    setIsLoading(true);
+    setError(null);
 
     try {
       const result = await getWeatherMovieRecommendation(cityName, geometry.lat, geometry.lng);
@@ -111,6 +118,8 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
     } catch (error) {
       console.error('Error fetching weather data:', error);
       setError('Failed to fetch weather data. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -196,6 +205,19 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
 
   const displayRecommendation = localRecommendation || recommendation;
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden flex flex-col transition-all duration-300 ${isDarkMode ? 'text-white' : 'text-gray-900'} ${isChatExpanded ? 'h-full' : 'h-auto min-h-[calc(100vh-12rem)]'}`}>
       <div className="bg-blue-600 dark:bg-blue-800 p-4">
@@ -208,6 +230,7 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
               type="text"
               value={city}
               onChange={handleCityChange}
+              onFocus={() => setShowSuggestions(true)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && citySuggestions.length > 0) {
                   handleCitySelect(citySuggestions[0].name, citySuggestions[0].geometry);
@@ -224,13 +247,19 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
               {isLoading ? 'Loading...' : 'Get Recommendations'}
             </button>
           </div>
-          {citySuggestions.length > 0 && (
-            <ul className="absolute bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 max-h-60 overflow-auto z-10 w-full">
+          {showSuggestions && citySuggestions.length > 0 && (
+            <ul 
+              ref={suggestionsRef}
+              className="absolute bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 max-h-60 overflow-auto z-10 w-full"
+            >
               {citySuggestions.map((suggestion, index) => (
                 <li 
                   key={index} 
                   className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer text-gray-900 dark:text-white"
-                  onClick={() => handleCitySelect(suggestion.name, suggestion.geometry)}
+                  onClick={() => {
+                    handleCitySelect(suggestion.name, suggestion.geometry);
+                    setShowSuggestions(false);
+                  }}
                 >
                   {suggestion.name}, {suggestion.country}
                 </li>
@@ -249,10 +278,11 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
                 exit={{ opacity: 0 }}
                 className="text-center py-4"
               >
+                <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4 mx-auto"></div>
                 Loading...
               </motion.div>
             )}
-            {(error || propError) && (
+            {error && !isLoading && !displayRecommendation && (
               <motion.div
                 key="error"
                 initial={{ opacity: 0 }}
@@ -260,7 +290,7 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
                 exit={{ opacity: 0 }}
                 className="text-red-500 text-center py-4"
               >
-                {error || propError}
+                {error}
               </motion.div>
             )}
             
