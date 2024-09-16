@@ -160,31 +160,35 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
     }
 
     return (
-      <div className="bg-gradient-to-r from-blue-500 to-blue-300 dark:from-blue-700 dark:to-blue-500 p-4 rounded-lg shadow-md flex items-center justify-between">
-        <div className="flex items-center">
-          <motion.span 
-            className="text-5xl mr-4"
-            animate={{ 
-              scale: [1, 1.2, 1],
-              rotate: [0, 10, -10, 0]
-            }}
-            transition={{ 
-              duration: 2,
-              repeat: Infinity,
-              repeatType: "reverse"
-            }}
-          >
-            {getWeatherIcon(weather.weather[0].main)}
-          </motion.span>
-          <div>
-            <h3 className="text-xl font-bold text-white">{localRecommendation?.cityName}</h3>
-            <p className="text-white">{weather.weather[0].main}, {Math.round(weather.main.temp)}°C</p>
-            <p className="text-sm text-white opacity-75">{localRecommendation?.country}</p>
+      <div className="bg-gradient-to-r from-blue-500 to-blue-300 dark:from-blue-700 dark:to-blue-500 p-4 rounded-lg shadow-md">
+        <h3 className="text-2xl font-bold text-white mb-2">
+          {weather.name || localRecommendation?.cityName}, {weather.sys.country}
+        </h3>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <motion.span 
+              className="text-5xl mr-4"
+              animate={{ 
+                scale: [1, 1.2, 1],
+                rotate: [0, 10, -10, 0]
+              }}
+              transition={{ 
+                duration: 2,
+                repeat: Infinity,
+                repeatType: "reverse"
+              }}
+            >
+              {getWeatherIcon(weather.weather[0].main)}
+            </motion.span>
+            <div>
+              <p className="text-white text-xl">{weather.weather[0].main}, {Math.round(weather.main.temp)}°C</p>
+              <p className="text-sm text-white opacity-75">{weather.weather[0].description}</p>
+            </div>
           </div>
-        </div>
-        <div className="text-right">
-          <p className="text-white">Humidity: {weather.main.humidity}%</p>
-          <p className="text-white">Wind: {weather.wind.speed} m/s</p>
+          <div className="text-right">
+            <p className="text-white">Humidity: {weather.main.humidity}%</p>
+            <p className="text-white">Wind: {weather.wind.speed} m/s</p>
+          </div>
         </div>
       </div>
     );
