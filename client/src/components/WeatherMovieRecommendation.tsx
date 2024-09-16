@@ -219,7 +219,7 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
   }, []);
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden flex flex-col transition-all duration-300 ${isDarkMode ? 'text-white' : 'text-gray-900'} ${isChatExpanded ? 'h-full' : 'h-auto min-h-[calc(100vh-12rem)]'}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden flex flex-col transition-all duration-300 ${isDarkMode ? 'text-darkText' : 'text-gray-900'}`}>
       <div className="bg-blue-600 dark:bg-blue-800 p-4">
         <h2 className="text-xl font-semibold text-white">Weather-based Movie Recommendation</h2>
       </div>
@@ -241,7 +241,7 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
             />  
             <button 
               type="submit" 
-              className="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+              className={`bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 ${isDarkMode ? 'hover:bg-blue-700' : ''}`}
               disabled={isLoading}
             >
               {isLoading ? 'Loading...' : 'Get Recommendations'}

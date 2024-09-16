@@ -20,9 +20,12 @@ const Chat: React.FC<ChatProps> = ({ onMovieSelect, isDarkMode }) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
   }, [messages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,16 +88,16 @@ const Chat: React.FC<ChatProps> = ({ onMovieSelect, isDarkMode }) => {
   };
 
   return (
-    <div className={`rounded-lg shadow-md p-4 h-[400px] flex flex-col ${isDarkMode ? 'bg-darkBg text-darkText' : 'bg-white text-gray-900'}`}>
+    <div className={`rounded-lg shadow-lg p-4 h-[400px] flex flex-col ${isDarkMode ? 'bg-darkBg text-darkText border border-darkBorder' : 'bg-white text-gray-900 border border-gray-300'}`}>
       <h2 className="text-xl font-bold mb-2">Chat</h2>
-      <div className="flex-grow overflow-y-auto mb-2 space-y-2">
-      {messages.map((msg, index) => (
-        <motion.div
-          key={index}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }} // Fading effect duration
-          className={`p-2 rounded-lg text-sm ${msg.sender === 'user' ? 'bg-blue-100 ml-auto' : 'bg-gray-100'}`}
+      <div ref={chatContainerRef} className="flex-grow overflow-y-auto mb-2 space-y-2">
+        {messages.map((msg, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }} // Fading effect duration
+            className={`p-2 rounded-lg text-sm ${msg.sender === 'user' ? 'bg-blue-100 ml-auto' : 'bg-gray-100'}`}
           >
             <ReactMarkdown>{msg.text}</ReactMarkdown>
           </motion.div>
