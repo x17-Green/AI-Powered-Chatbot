@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { signInWithGoogle, signInWithGithub, signInWithEmailPassword, createUserWithEmailPassword } from '../services/auth';
 import { FaGoogle, FaGithub } from 'react-icons/fa';
+import loginBg from '../assets/login-bg.mp4';
 
 interface LoginProps {
   onLogin: () => Promise<void>;
@@ -22,7 +23,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       await onLogin();
     } catch (error) {
       console.error('Authentication error:', error);
-      // Handle error (e.g., show error message to user)
     }
   };
 
@@ -32,7 +32,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       await onLogin();
     } catch (error) {
       console.error('Google sign-in error:', error);
-      // Handle error
     }
   };
 
@@ -42,12 +41,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       await onLogin();
     } catch (error) {
       console.error('GitHub sign-in error:', error);
-      // Handle error
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-800 to-indigo-900">
+    <div className="flex items-center justify-center min-h-screen">
+      <video autoPlay loop muted className="absolute top-0 left-0 w-full h-full object-cover z-[-1]">
+        <source src={loginBg} type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md mx-4">
         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
           {isSignUp ? 'Sign Up' : 'Sign In'}
