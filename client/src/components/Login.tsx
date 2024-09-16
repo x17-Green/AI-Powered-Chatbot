@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { signInWithGoogle, signInWithGithub, signInWithEmailPassword, createUserWithEmailPassword } from '../services/auth';
+import { FaGoogle, FaGithub } from 'react-icons/fa';
 
 interface LoginProps {
-  onLogin: () => void;
+  onLogin: () => Promise<void>;
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
@@ -10,7 +11,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
 
-  const handleEmailPasswordAuth = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       if (isSignUp) {
@@ -18,19 +19,19 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       } else {
         await signInWithEmailPassword(email, password);
       }
-      onLogin();
+      await onLogin();
     } catch (error) {
-      console.error('Error during email/password auth:', error);
-      // Handle error (show message to user)
+      console.error('Authentication error:', error);
+      // Handle error (e.g., show error message to user)
     }
   };
 
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();
-      onLogin();
+      await onLogin();
     } catch (error) {
-      console.error('Error during Google sign in:', error);
+      console.error('Google sign-in error:', error);
       // Handle error
     }
   };
@@ -38,56 +39,66 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const handleGithubSignIn = async () => {
     try {
       await signInWithGithub();
-      onLogin();
+      await onLogin();
     } catch (error) {
-      console.error('Error during GitHub sign in:', error);
+      console.error('GitHub sign-in error:', error);
       // Handle error
     }
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-md">
-      <h2 className="text-2xl font-bold mb-6 text-center dark:text-white">
-        {isSignUp ? 'Sign Up' : 'Login'}
-      </h2>
-      <form onSubmit={handleEmailPasswordAuth} className="space-y-4">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
-          required
-        />
-        <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
-          {isSignUp ? 'Sign Up' : 'Login'}
-        </button>
-      </form>
-      <div className="mt-4 flex justify-between">
-        <button onClick={handleGoogleSignIn} className="bg-red-500 text-white p-2 rounded hover:bg-red-600">
-          Sign in with Google
-        </button>
-        <button onClick={handleGithubSignIn} className="bg-gray-800 text-white p-2 rounded hover:bg-gray-900">
-          Sign in with GitHub
-        </button>
-      </div>
-      <p className="mt-4 text-center dark:text-white">
-        {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-800 to-indigo-900">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md mx-4">
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+          {isSignUp ? 'Sign Up' : 'Sign In'}
+        </h2>
+        <form onSubmit={handleSubmit} className="mb-4">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            className="w-full px-3 py-2 border rounded-md text-gray-700 mb-3"
+            required
+          />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            className="w-full px-3 py-2 border rounded-md text-gray-700 mb-3"
+            required
+          />
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-200"
+          >
+            {isSignUp ? 'Sign Up' : 'Sign In'}
+          </button>
+        </form>
+        <div className="text-center mb-4 text-gray-600">OR</div>
         <button
-          onClick={() => setIsSignUp(!isSignUp)}
-          className="ml-2 text-blue-500 hover:underline"
+          onClick={handleGoogleSignIn}
+          className="w-full bg-white text-gray-700 border border-gray-300 py-2 rounded-md mb-2 hover:bg-gray-100 transition duration-200 flex items-center justify-center"
         >
-          {isSignUp ? 'Login' : 'Sign Up'}
+          <FaGoogle className="mr-2" /> Continue with Google
         </button>
-      </p>
+        <button
+          onClick={handleGithubSignIn}
+          className="w-full bg-gray-800 text-white py-2 rounded-md hover:bg-gray-900 transition duration-200 flex items-center justify-center"
+        >
+          <FaGithub className="mr-2" /> Continue with GitHub
+        </button>
+        <p className="mt-4 text-center text-gray-600">
+          {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+          <button 
+            onClick={() => setIsSignUp(!isSignUp)} 
+            className="text-blue-500 hover:underline ml-1"
+          >
+            {isSignUp ? 'Sign In' : 'Sign Up'}
+          </button>
+        </p>
+      </div>
     </div>
   );
 };
