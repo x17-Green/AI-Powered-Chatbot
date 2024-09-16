@@ -3,7 +3,7 @@ import axios from 'axios';
 import { getDatabase, ref, push, set, get, query, orderByKey, limitToLast, runTransaction, endBefore } from "firebase/database";
 import { app } from './firebase';
 
-// const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://your-back4app-container-url.back4app.io/api';
+// const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http;
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL; // Adjust this to match your server URL
 console.log('API_BASE_URL:', API_BASE_URL);
