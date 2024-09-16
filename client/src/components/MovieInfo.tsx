@@ -16,7 +16,7 @@ interface Movie {
 interface MovieInfoProps {
   movie: Movie | null;
   onMovieSelect: (movie: Movie | null) => void;
-  isDarkMode: boolean; // Add this line
+  isDarkMode: boolean;
 }
 
 const MovieInfo: React.FC<MovieInfoProps> = ({ movie, onMovieSelect, isDarkMode }) => {
@@ -112,9 +112,9 @@ const MovieInfo: React.FC<MovieInfoProps> = ({ movie, onMovieSelect, isDarkMode 
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden h-full flex flex-col">
+    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden h-full flex flex-col ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
       <div className="bg-blue-600 dark:bg-blue-800 p-4">
-        <h2 className="text-xl font-semibold text-white">Movie Search</h2>
+        <h2 className="text-xl font-semibold text-white">Movie Information</h2>
       </div>
       <div className="p-4 flex-grow flex flex-col overflow-hidden">
         <form onSubmit={handleSearch} className="mb-4 flex-shrink-0">
@@ -158,24 +158,24 @@ const MovieInfo: React.FC<MovieInfoProps> = ({ movie, onMovieSelect, isDarkMode 
               className="flex-grow overflow-y-auto"
             >
               <div className="flex flex-col items-center">
-                <h2 className="text-xl font-bold mb-2 text-center dark:text-white">{movie.title}</h2>
+                <h2 className="text-2xl font-bold mb-2 text-center">{movie.title}</h2>
                 {movie.poster_path && (
                   <motion.img 
                     src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} 
                     alt={movie.title} 
-                    className="w-32 h-48 md:w-48 md:h-72 object-cover rounded-lg mb-2 transition-all duration-300"
+                    className="w-48 h-72 object-cover rounded-lg mb-4 shadow-lg"
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.3 }}
                   />
                 )}
                 <motion.div 
-                  className="w-full"
+                  className="w-full bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow-md"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2, duration: 0.3 }}
                 >
-                  <p className="text-gray-700 dark:text-gray-300 mb-2 text-sm">{movie.overview}</p>
+                  <p className="mb-2">{movie.overview}</p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Release Date: {movie.release_date}</p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Rating: {movie.vote_average}/10</p>
                 </motion.div>
@@ -186,7 +186,7 @@ const MovieInfo: React.FC<MovieInfoProps> = ({ movie, onMovieSelect, isDarkMode 
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4, duration: 0.3 }}
                   >
-                    <h3 className="text-lg font-semibold mb-2 dark:text-white">Rate this movie:</h3>
+                    <h3 className="text-lg font-semibold mb-2">Rate this movie:</h3>
                     <div className="flex justify-center space-x-2">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -218,7 +218,7 @@ const MovieInfo: React.FC<MovieInfoProps> = ({ movie, onMovieSelect, isDarkMode 
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.6, duration: 0.3 }}
                 >
-                  <h3 className="text-lg font-semibold mb-2 dark:text-white">Share this movie:</h3>
+                  <h3 className="text-lg font-semibold mb-2">Share this movie:</h3>
                   <div className="flex justify-center space-x-4">
                     <button onClick={() => shareMovie('twitter')} className="text-blue-400 hover:text-blue-600">
                       <FaTwitter size={24} />
@@ -242,7 +242,7 @@ const MovieInfo: React.FC<MovieInfoProps> = ({ movie, onMovieSelect, isDarkMode 
               transition={{ duration: 0.3 }}
               className="flex-grow flex items-center justify-center"
             >
-              <p className="text-gray-700 dark:text-gray-300 text-center">Search for a movie or ask the AI about one to see details here!</p>
+              <p className="text-center">Search for a movie or ask the AI about one to see details here!</p>
             </motion.div>
           )}
         </AnimatePresence>

@@ -1,4 +1,4 @@
-import { getAuth, signInWithPopup, GoogleAuthProvider, GithubAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "firebase/auth";
+import { getAuth, signInWithPopup, GoogleAuthProvider, GithubAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { app } from './firebase';
 
 const auth = getAuth(app);
@@ -27,7 +27,7 @@ export const signOutUser = () => {
 
 export const getCurrentUser = () => {
   return new Promise((resolve, reject) => {
-    const unsubscribe = auth.onAuthStateChanged(user => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       unsubscribe();
       resolve(user);
     }, reject);

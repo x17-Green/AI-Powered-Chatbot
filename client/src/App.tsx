@@ -5,10 +5,10 @@ import WeatherMovieRecommendation from './components/WeatherMovieRecommendation'
 import Login from './components/Login';
 import { searchMovie, getWeatherMovieRecommendation } from './services/api';
 import { getCurrentUser, signOutUser } from './services/auth';
-import { motion } from 'framer-motion';
-import { ToastContainer } from 'react-toastify';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FaMoon, FaSun } from 'react-icons/fa';
+import { FaMoon, FaSun, FaComments, FaTimes, FaBars, FaSignOutAlt } from 'react-icons/fa';
 
 interface Movie {
   id: number;
@@ -28,12 +28,21 @@ const App: React.FC = () => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isChatExpanded, setIsChatExpanded] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
+      try {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+      } catch (error) {
+        console.error('Error checking user:', error);
+        toast.error('Failed to authenticate user. Please try logging in again.');
+        setUser(null);
+      }
     };
+
     checkUser();
 
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -84,13 +93,33 @@ const App: React.FC = () => {
   };
 
   const handleSignOut = async () => {
-    await signOutUser();
-    setUser(null);
+    try {
+      await signOutUser();
+      setUser(null);
+      toast.success('Signed out successfully');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast.error('Failed to sign out. Please try again.');
+    }
   };
 
   const handleLogin = async () => {
-    const currentUser = await getCurrentUser();
-    setUser(currentUser);
+    try {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+      toast.success('Logged in successfully');
+    } catch (error) {
+      console.error('Error logging in:', error);
+      toast.error('Failed to log in. Please try again.');
+    }
+  };
+
+  const toggleChat = () => {
+    setIsChatExpanded(!isChatExpanded);
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
   };
 
   if (!user) {
@@ -115,30 +144,52 @@ const App: React.FC = () => {
         pauseOnHover 
         theme={isDarkMode ? 'dark' : 'light'}
       />
-      <div className="container mx-auto px-4 py-8">
-        <header className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">AI Movie Chatbot</h1>
-          <div className="flex items-center">
-            {user && (
+      <div className="container mx-auto px-4 py-4 sm:py-6">
+        <header className="mb-8">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl sm:text-3xl font-bold">AI Movie Chatbot</h1>
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <button
-                onClick={handleSignOut}
-                className="mr-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                onClick={toggleChat}
+                className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+                aria-label={isChatExpanded ? "Collapse chat" : "Expand chat"}
               >
-                Sign Out
+                {isChatExpanded ? <FaTimes /> : <FaComments />}
               </button>
-            )}
-            <button
-              onClick={toggleDarkMode}
-              className="p-2 rounded-full bg-gray-200 dark:bg-gray-700"
-            >
-              {isDarkMode ? <FaSun className="text-yellow-400" /> : <FaMoon className="text-gray-700" />}
-            </button>
+              {user && (
+                <button
+                  onClick={handleSignOut}
+                  className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
+                  aria-label="Sign out"
+                >
+                  <FaSignOutAlt />
+                </button>
+              )}
+              <button
+                onClick={toggleDarkMode}
+                className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-yellow-400 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+              >
+                {isDarkMode ? <FaSun /> : <FaMoon />}
+              </button>
+            </div>
           </div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="space-y-8 flex flex-col">
-            <Chat onMovieSelect={handleMovieSelect} isDarkMode={isDarkMode} />
+          <div className={`space-y-8 flex flex-col transition-all duration-300 ease-in-out ${isChatExpanded ? 'lg:col-span-1' : 'lg:col-span-1'}`}>
+            <AnimatePresence>
+              {isChatExpanded && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Chat onMovieSelect={handleMovieSelect} isDarkMode={isDarkMode} />
+                </motion.div>
+              )}
+            </AnimatePresence>
             <WeatherMovieRecommendation
               onCitySubmit={handleCitySubmit}
               onMovieClick={handleMovieSelect}
@@ -147,6 +198,7 @@ const App: React.FC = () => {
               setIsLoading={setIsLoading}
               error={error}
               isDarkMode={isDarkMode}
+              isChatExpanded={isChatExpanded}
             />
           </div>
           <div className="flex flex-col">

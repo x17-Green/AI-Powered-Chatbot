@@ -70,19 +70,19 @@ const Chat: React.FC<ChatProps> = ({ onMovieSelect, isDarkMode }) => {
   // const handleClearChat = async () => { ... };
 
   return (
-    <div className={`rounded-lg shadow-md p-4 h-[500px] flex flex-col ${isDarkMode ? 'bg-darkBg text-darkText' : 'bg-white text-gray-900'}`}>
-      <h2 className="text-2xl font-bold mb-4">Chat</h2>
+    <div className={`rounded-lg shadow-md p-4 h-[400px] flex flex-col ${isDarkMode ? 'bg-darkBg text-darkText' : 'bg-white text-gray-900'}`}>
+      <h2 className="text-xl font-bold mb-2">Chat</h2>
       <div 
         ref={messagesEndRef}
-        className="flex-grow overflow-y-auto mb-4 space-y-4"
+        className="flex-grow overflow-y-auto mb-2 space-y-2"
       >
         {messages.map((msg, index) => (
           <motion.div
             key={index}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className={`p-2 rounded-lg ${
+            transition={{ duration: 0.2 }}
+            className={`p-2 rounded-lg text-sm ${
               msg.sender === 'user' 
                 ? isDarkMode ? 'bg-blue-900 ml-auto' : 'bg-blue-100 ml-auto'
                 : isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
@@ -97,7 +97,7 @@ const Chat: React.FC<ChatProps> = ({ onMovieSelect, isDarkMode }) => {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          className={`flex-grow p-2 border rounded-l-lg ${
+          className={`flex-grow p-2 text-sm border rounded-l-lg ${
             isDarkMode 
               ? 'bg-darkInput border-darkBorder text-darkText' 
               : 'bg-white border-gray-300 text-gray-900'

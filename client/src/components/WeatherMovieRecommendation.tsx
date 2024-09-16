@@ -19,6 +19,7 @@ interface WeatherMovieRecommendationProps {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   error: string | null;
   isDarkMode: boolean;
+  isChatExpanded: boolean;
 }
 
 interface Weather {
@@ -62,7 +63,8 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
   isLoading,
   setIsLoading,
   error: propError,
-  isDarkMode
+  isDarkMode,
+  isChatExpanded
 }) => {
   const [city, setCity] = useState('');
   const [multipleCities, setMultipleCities] = useState<any[]>([]);
@@ -191,7 +193,7 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
   const displayRecommendation = localRecommendation || recommendation;
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden h-full flex flex-col ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden flex flex-col transition-all duration-300 ${isDarkMode ? 'text-white' : 'text-gray-900'} ${isChatExpanded ? 'h-full' : 'h-[calc(100vh-12rem)]'}`}>
       <div className="bg-blue-600 dark:bg-blue-800 p-4">
         <h2 className="text-xl font-semibold text-white">Weather-based Movie Recommendation</h2>
       </div>
@@ -300,17 +302,21 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
               transition={{ duration: 0.5 }}
               className="flex-grow flex flex-col overflow-hidden"
             >
-              <div className="mb-4 flex items-center flex-shrink-0">
+              <div className="mb-4 flex-shrink-0">
                 {renderWeatherInfo(displayRecommendation.weather)}
               </div>
               {displayRecommendation.movieRecommendations && (
                 <div className="flex-grow overflow-auto">
                   <h3 className="text-lg font-semibold mb-2 dark:text-white">Recommended Movies ({displayRecommendation.recommendedGenre}):</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 pb-4">
+                  <div className={`grid gap-4 pb-4 ${
+                    isChatExpanded 
+                      ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4' 
+                      : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'
+                  }`}>
                     {displayRecommendation.movieRecommendations.map((movie: any, index: number) => (
                       <motion.div 
                         key={index} 
-                        className="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg flex flex-col items-center cursor-pointer"
+                        className="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg flex flex-col items-center cursor-pointer shadow-md hover:shadow-lg transition-shadow duration-200"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => onMovieClick(movie)}
@@ -324,7 +330,7 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
                             />
                           </div>
                         )}
-                        <p className="text-sm font-medium text-center dark:text-white line-clamp-2">{movie.title}</p>
+                        <p className="text-sm font-medium text-center dark:text-white line-clamp-2 h-10">{movie.title}</p>
                       </motion.div>
                     ))}
                   </div>
