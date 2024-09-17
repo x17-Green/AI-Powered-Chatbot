@@ -112,7 +112,9 @@ const WeatherMovieRecommendation: React.FC<WeatherMovieRecommendationProps> = ({
     setError(null);
 
     try {
+      console.log('Fetching weather and movie recommendations for:', cityName, geometry);
       const result = await getWeatherMovieRecommendation(cityName, geometry.lat, geometry.lng);
+      console.log('Received result:', result);
       onCitySubmit(cityName);
       setLocalRecommendation(result);
     } catch (error) {

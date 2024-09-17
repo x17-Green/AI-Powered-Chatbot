@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { FaMoon, FaSun, FaComments, FaTimes, FaBars, FaSignOutAlt } from 'react-icons/fa';
+import { useAuth } from './contexts/AuthContext'; // Add this import
 
 interface Movie {
   id: number;
@@ -20,6 +21,9 @@ interface Movie {
 }
 
 const App: React.FC = () => {
+  // Replace the user state with useAuth hook
+  const { user, loading } = useAuth();
+  
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [weatherRecommendation, setWeatherRecommendation] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -27,24 +31,10 @@ const App: React.FC = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [user, setUser] = useState<any>(null);
   const [isChatExpanded, setIsChatExpanded] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const currentUser = await getCurrentUser();
-        setUser(currentUser);
-      } catch (error) {
-        console.error('Error checking user:', error);
-        toast.error('Failed to authenticate user. Please try logging in again.');
-        setUser(null);
-      }
-    };
-
-    checkUser();
-
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const savedMode = localStorage.getItem('darkMode');
     setIsDarkMode(savedMode ? JSON.parse(savedMode) : prefersDark);
@@ -61,12 +51,19 @@ const App: React.FC = () => {
   const handleMovieSelect = async (movieTitleOrMovie: string | Movie) => {
     if (typeof movieTitleOrMovie === 'string') {
       try {
+        setIsLoading(true);
         const movieData = await searchMovie(movieTitleOrMovie);
+        console.log('Movie data received:', movieData); // Add this log
         if (movieData && movieData.length > 0) {
           setSelectedMovie(movieData[0]);
+        } else {
+          toast.info('No movies found for this title.');
         }
       } catch (error) {
         console.error('Error fetching movie data:', error);
+        toast.error('Failed to fetch movie data. Please try again.');
+      } finally {
+        setIsLoading(false);
       }
     } else {
       setSelectedMovie(movieTitleOrMovie);
@@ -78,10 +75,12 @@ const App: React.FC = () => {
     setError(null);
     try {
       const data = await getWeatherMovieRecommendation(city);
+      console.log('Weather recommendation data received:', data); // Add this log
       setWeatherRecommendation(data);
     } catch (error) {
       console.error('Error fetching weather-based recommendation:', error);
       setError('Failed to fetch weather-based recommendation. Please try again.');
+      toast.error('Failed to fetch weather-based recommendation. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -95,7 +94,6 @@ const App: React.FC = () => {
   const handleSignOut = async () => {
     try {
       await signOutUser();
-      setUser(null);
       toast.success('Signed out successfully');
     } catch (error) {
       console.error('Error signing out:', error);
@@ -104,14 +102,8 @@ const App: React.FC = () => {
   };
 
   const handleLogin = async () => {
-    try {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
-      toast.success('Logged in successfully');
-    } catch (error) {
-      console.error('Error logging in:', error);
-      toast.error('Failed to log in. Please try again.');
-    }
+    // This function might not be needed anymore since we're using AuthContext
+    toast.success('Logged in successfully');
   };
 
   const toggleChat = () => {
@@ -121,6 +113,14 @@ const App: React.FC = () => {
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-800 to-indigo-900">
+        <div className="text-white text-2xl">Loading...</div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
@@ -186,7 +186,11 @@ const App: React.FC = () => {
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <Chat onMovieSelect={handleMovieSelect} isDarkMode={isDarkMode} />
+                  <Chat 
+                    onMovieSelect={handleMovieSelect} 
+                    isDarkMode={isDarkMode} 
+                    userId={user.uid} // Add this line
+                  />
                 </motion.div>
               )}
             </AnimatePresence>

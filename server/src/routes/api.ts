@@ -6,6 +6,7 @@ import cache from 'memory-cache';
 import geocoder from 'node-geocoder';
 import dotenv from 'dotenv';
 import opencage from 'opencage-api-client'; // Import the OpenCage API client
+import { authMiddleware } from '../middleware/auth';
 
 dotenv.config();
 
@@ -20,13 +21,21 @@ const geo = geocoder(options);
 
 const router = express.Router();
 
+router.use(authMiddleware);
+// Your protected routes go here
+
 router.post('/chat', async (req, res) => {
   try {
     const { message } = req.body;
     const response = await geminiApi.generateChatResponse(message);
     res.json({ response });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to generate response' });
+  } catch (error: unknown) {
+    console.error('Error generating chat response:', error);
+    if (error instanceof Error) {
+      res.status(500).json({ error: 'Failed to generate response', details: error.message });
+    } else {
+      res.status(500).json({ error: 'Failed to generate response', details: 'An unknown error occurred' });
+    }
   }
 });
 
@@ -37,10 +46,15 @@ router.get('/movie', async (req, res) => {
       return res.status(400).json({ error: 'Invalid title parameter' });
     }
     const movies = await movieDbApi.searchMovie(title);
+    console.log('Movies found:', movies);
     res.json(movies);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error searching movie:', error);
-    res.status(500).json({ error: 'Failed to fetch movie information' });
+    if (error instanceof Error) {
+      res.status(500).json({ error: 'Failed to fetch movie information', details: error.message });
+    } else {
+      res.status(500).json({ error: 'Failed to fetch movie information', details: 'An unknown error occurred' });
+    }
   }
 });
 
@@ -92,9 +106,13 @@ router.get('/city-suggestions', async (req, res) => {
         return res.status(404).json({ error: 'No results found' });
       }
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching city suggestions:', error); // Log error
-    res.status(500).json({ error: 'Failed to fetch city suggestions' });
+    if (error instanceof Error) {
+      res.status(500).json({ error: 'Failed to fetch city suggestions', details: error.message });
+    } else {
+      res.status(500).json({ error: 'Failed to fetch city suggestions', details: 'An unknown error occurred' });
+    }
   }
 });
 
@@ -129,48 +147,58 @@ async function getCitySuggestions(query: string, country: string, region: string
 router.get('/weather-movie-recommendation', async (req, res) => {
   try {
     const { city, lat, lon } = req.query;
-    if (typeof city !== 'string') {
-      return res.status(400).json({ error: 'Invalid city parameter' });
-    }
-
+    console.log('Received weather-movie-recommendation request:', { city, lat, lon });
+    
+    // Get weather data
     let weatherData;
     if (lat && lon) {
+      console.log('Fetching weather data by coordinates');
       weatherData = await weatherApi.getCurrentWeatherByCoordinates(Number(lat), Number(lon));
-    } else {
-      const cities = await weatherApi.getCurrentWeatherForMultipleCities(city);
+    } else if (city) {
+      console.log('Fetching weather data by city name');
+      const cities = await weatherApi.getCurrentWeatherForMultipleCities(city as string);
       weatherData = cities[0]; // Use the first city in the list
+    } else {
+      throw new Error('City or coordinates are required');
+    }
+    console.log('Weather data:', JSON.stringify(weatherData, null, 2));
+
+    if (!weatherData || !weatherData.weather || !weatherData.weather[0]) {
+      throw new Error('Invalid weather data received');
     }
 
-    // Implement movie recommendation logic based on weather
-    const weatherCondition = weatherData.weather[0].main.toLowerCase();
-    let movieGenre;
+    // Get movie recommendations based on weather
+    console.log('Fetching movie recommendations for weather:', weatherData.weather[0].main);
+    const movieRecommendations = await movieDbApi.getMovieRecommendations(weatherData.weather[0].main);
+    console.log('Movie recommendations:', JSON.stringify(movieRecommendations, null, 2));
 
-    switch (weatherCondition) {
-      case 'clear':
-        movieGenre = 'adventure';
-        break;
-      case 'clouds':
-        movieGenre = 'drama';
-        break;
-      case 'rain':
-        movieGenre = 'mystery';
-        break;
-      // Add more cases as needed
-      default:
-        movieGenre = 'comedy';
+    const response = {
+      weather: weatherData,
+      movieRecommendations: movieRecommendations,
+      recommendedGenre: getGenreFromWeather(weatherData.weather[0].main)
+    };
+    console.log('Sending response:', JSON.stringify(response, null, 2));
+    res.json(response);
+  } catch (error: unknown) {
+    console.error('Error in weather-movie-recommendation:', error);
+    if (error instanceof Error) {
+      res.status(500).json({ error: 'Failed to get weather and movie recommendations', details: error.message });
+    } else {
+      res.status(500).json({ error: 'Failed to get weather and movie recommendations', details: 'An unknown error occurred' });
     }
-
-    const movies = await movieDbApi.searchMovie(movieGenre);
-    res.json({ 
-      weather: weatherData, 
-      movieRecommendations: movies.slice(0, 5),
-      recommendedGenre: movieGenre
-    });
-  } catch (error) {
-    console.error('Error fetching weather-based recommendation:', error);
-    res.status(500).json({ error: 'Failed to fetch weather-based movie recommendation' });
   }
 });
+
+function getGenreFromWeather(weatherCondition: string): string {
+  const genreMap: { [key: string]: string } = {
+    Clear: 'Comedy',
+    Clouds: 'Drama',
+    Rain: 'Romance',
+    Snow: 'Fantasy',
+    Thunderstorm: 'Action',
+  };
+  return genreMap[weatherCondition] || 'Comedy';
+}
 
 // Remove the '/rate-movie' route as it's no longer needed
 

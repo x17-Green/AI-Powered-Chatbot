@@ -1,14 +1,9 @@
 import axios from 'axios';
-// import config from '../config';
 import { getDatabase, ref, push, set, get, query, orderByKey, limitToLast, runTransaction, endBefore } from "firebase/database";
-import { app } from './firebase';
+import { database } from './firebase';
 
-// const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http;
-
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL; // Adjust this to match your server URL
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 console.log('API_BASE_URL:', API_BASE_URL);
-
-const database = getDatabase(app);
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -26,7 +21,8 @@ export const sendChatMessage = async (message: string) => {
 
 export const searchMovie = async (title: string) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/movie`, { params: { title } });
+    const response = await axiosInstance.get('/movie', { params: { title } });
+    console.log('Movie search response:', response.data); // Add this log
     return response.data;
   } catch (error) {
     console.error('Error searching movie:', error);
@@ -41,10 +37,16 @@ export const getWeatherMovieRecommendation = async (city: string, lat?: number, 
       params.lat = lat;
       params.lon = lon;
     }
-    const response = await axios.get(`${API_BASE_URL}/weather-movie-recommendation`, { params });
+    console.log('Sending request to weather-movie-recommendation with params:', params);
+    console.log('API_BASE_URL:', API_BASE_URL);
+    const response = await axiosInstance.get('/weather-movie-recommendation', { params });
+    console.log('Weather movie recommendation response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error getting weather movie recommendation:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('Axios error details:', error.response?.data);
+    }
     throw error;
   }
 };
@@ -132,7 +134,7 @@ export const clearChatHistory = async () => {
 export const fetchCitySuggestions = async (input: string) => {
   try {
     const response = await axiosInstance.get(`/city-suggestions?query=${input}`);
-    return response.data; // Adjust based on your API response structure
+    return response.data;
   } catch (error) {
     console.error('Error fetching city suggestions:', error);
     throw new Error('Failed to fetch city suggestions. Please try again.');
@@ -142,7 +144,7 @@ export const fetchCitySuggestions = async (input: string) => {
 export const getMovieRecommendationsByLocation = async (location: string) => {
   try {
     const response = await axiosInstance.get(`/movie-recommendations`, { params: { location } });
-    return response.data; // Adjust based on your API response structure
+    return response.data;
   } catch (error) {
     console.error('Error fetching movie recommendations:', error);
     throw new Error('Failed to fetch movie recommendations. Please try again.');

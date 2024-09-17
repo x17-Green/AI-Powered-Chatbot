@@ -31,6 +31,36 @@ export const createMovieDbApi = (axiosInstance?: AxiosInstance) => {
         console.error('MovieDB API error:', error);
         throw new Error('Failed to search for movie');
       }
+    },
+    getMovieRecommendations: async (weatherCondition: string) => {
+      try {
+        console.log(`Getting movie recommendations for weather: ${weatherCondition}`);
+        // Map weather conditions to genre IDs
+        const genreMap: { [key: string]: number } = {
+          Clear: 35, // Comedy
+          Clouds: 18, // Drama
+          Rain: 10749, // Romance
+          Snow: 14, // Fantasy
+          Thunderstorm: 28, // Action
+        };
+
+        const genreId = genreMap[weatherCondition] || 35; // Default to Comedy if weather condition not found
+        console.log(`Mapped genre ID: ${genreId}`);
+
+        const response = await api.get('/discover/movie', {
+          params: {
+            with_genres: genreId,
+            sort_by: 'popularity.desc',
+            page: 1
+          }
+        });
+        console.log('MovieDB API response:', JSON.stringify(response.data, null, 2));
+
+        return response.data.results.slice(0, 10); // Return top 10 movies
+      } catch (error) {
+        console.error('Error fetching movie recommendations:', error);
+        throw new Error('Failed to fetch movie recommendations');
+      }
     }
   };
 };

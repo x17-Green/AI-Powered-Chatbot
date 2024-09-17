@@ -17,9 +17,8 @@ export const geminiApi = {
       return response.text();
     } catch (error: any) {
       logger.error('Gemini API error:', error);
-      // Log more details about the error
-      if (error.response) {
-        logger.error('Error response:', error.response);
+      if (error.message.includes('SAFETY')) {
+        throw new Error('The AI couldn\'t process this request due to safety concerns. Please try rephrasing your message.');
       }
       throw new Error(`Failed to generate chat response: ${error.message}`);
     }

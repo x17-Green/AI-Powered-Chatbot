@@ -3,6 +3,8 @@ import cors from 'cors';
 import connectDB from './database';
 import apiRoutes from './routes/api';
 import dotenv from 'dotenv';
+import admin from 'firebase-admin';
+import { resolve } from 'path';
 
 dotenv.config();
 const app = express();
@@ -12,13 +14,24 @@ connectDB();
 
 // Update CORS configuration
 app.use(cors({
-  origin: 'http://localhost:3000', // Make sure this matches your client URL
-  credentials: true, // Allow credentials
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  credentials: true,
 }));
 
 app.use(express.json());
 app.use('/api', apiRoutes);
 
-app.listen(port, '127.0.0.1', () => {
+// Initialize Firebase Admin with the correct file name
+const serviceAccountPath = resolve(__dirname, '../../loginServiceAccountKey.json');
+try {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccountPath)
+  });
+  console.log('Firebase Admin initialized successfully');
+} catch (error) {
+  console.error('Error initializing Firebase Admin:', error);
+}
+
+app.listen(port, '0.0.0.0', () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
